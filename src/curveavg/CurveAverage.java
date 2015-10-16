@@ -39,6 +39,7 @@ public class CurveAverage extends PApplet {
 	
 	private int pickedPoint = 0;
 	private Vector3f[] controlPoints;
+	private Vector3f[] curveA, curveB;
 	boolean recalculateCurve = false;
 
 	String title = "6491 P2 2015: 3D swirl", name = "Sebastian Weiß, Kristian Eberhardson",
@@ -60,12 +61,28 @@ public class CurveAverage extends PApplet {
 		myFace = loadImage("data/pic.jpg");  // load image from file pic.jpg in folder data *** replace that file with your pic of your own face
 		textureMode(NORMAL);
 		
+		//example curve
 		controlPoints = new Vector3f[] {
 			new Vector3f(-50, -30, -70), //start
-			new Vector3f(-30, 10, -40),
+			new Vector3f(-60, 10, -40),
+			new Vector3f(-70, 12, -6),
+			new Vector3f(0, 50, 60),
+			new Vector3f(80, 45, 140),
 			new Vector3f(150, 80, 200), //end
-			new Vector3f(50, 15, 40)
+			new Vector3f(140, 90, 160),
+			new Vector3f(100, 37, 100),
+			new Vector3f(50, 39, 40),
+			new Vector3f(0, 15, -20)
 		};
+		curveA = new Vector3f[controlPoints.length / 2 + 1];
+		curveB = new Vector3f[controlPoints.length / 2 + 1];
+		for (int i=0; i<curveA.length; ++i) {
+			curveA[i] = controlPoints[i];
+		}
+		curveB[0] = controlPoints[0];
+		for (int i=1; i<curveB.length; ++i) {
+			curveB[i] = controlPoints[controlPoints.length - i];
+		}
 		recalculateCurve = true;
 
 		rx+=0.0001f;
@@ -120,7 +137,46 @@ public class CurveAverage extends PApplet {
 	}
 	
 	private void calculateAndShowCurve() {
-		
+		noStroke();
+		//Show control points
+		fill(grey);
+		for (Vector3f p : controlPoints) {
+			pushMatrix();
+			translate(p.x, p.y, p.z);
+			sphere(0.1f*SCALE);
+			popMatrix();
+		}
+		//show curve
+		fill(blue);
+		for (int i=1; i<curveA.length; ++i) {
+			showCylinder(curveA[i-1], curveA[i], 0.05f*SCALE, 8);
+		}
+		fill(red);
+		for (int i=1; i<curveB.length; ++i) {
+			showCylinder(curveB[i-1], curveB[i], 0.05f*SCALE, 8);
+		}
+	}
+	
+	void showCylinder(Vector3f A, Vector3f B, float r, int s) {
+		Vector3f I = A.subtract(B).normalizeLocal(); // tangent
+		Vector3f X = new Vector3f(1, 0, 0);
+		if (Math.abs(X.dot(I)) > 0.9) {
+			X = new Vector3f(0, 1, 0);
+		}
+		Vector3f J = X.cross(I).normalizeLocal();
+		Vector3f K = I.cross(J).normalizeLocal();
+		Vector3f P = A.addScale(r, J);
+		Vector3f Q = B.addScale(r, J);
+		beginShape(QUAD_STRIP);
+		for (float t = 0; t < TWO_PI; t += TWO_PI / s) {
+			Vector3f v1 = A.addScale((float) (r*Math.cos(t)), J)
+					.addScale((float) (r*Math.sin(t)), K);
+			Vector3f v2 = B.addScale((float) (r*Math.cos(t)), J)
+					.addScale((float) (r*Math.sin(t)), K);
+			vertex(v1.x, v1.y, v1.z);
+			vertex(v2.x, v2.y, v2.z);
+		};
+		endShape();
 	}
 
 	public void keyPressed() {
@@ -192,7 +248,7 @@ public class CurveAverage extends PApplet {
 		float dist = Float.MAX_VALUE;
 		pickedPoint = 0;
 		for (int i=0; i<controlPoints.length; ++i) {
-			Vector3f p = controlPoints[i].mult(SCALE);
+			Vector3f p = controlPoints[i];
 			float x = screenX(p.x, p.y, p.z);
 			float y = screenY(p.x, p.y, p.z);
 			float z = screenZ(p.x, p.y, p.z);
@@ -233,9 +289,8 @@ public class CurveAverage extends PApplet {
 		movement.addLocal(v.x, v.y, v.z);
 		v = ToK(V(0, (mouseY-pmouseY),0));
 		movement.addLocal(v.x, v.y, v.z);
-		movement.divideLocal(SCALE);
 		if (pickedPoint >= 1) {
-			controlPoints[pickedPoint].addLocal(movement);
+			controlPoints[pickedPoint-1].addLocal(movement);
 		}
 		recalculateCurve = true;
 	}
