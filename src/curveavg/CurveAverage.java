@@ -19,14 +19,14 @@ public class CurveAverage extends PApplet {
 	private static final float PICK_TOLERANCE = 20;
 	public static final float DEG_TO_RAD = PI / 180.0f;
 	private static final float FPS = 60;
+	private static final int CURVE_INTERPOLATION_SAMPLES = 16;
+	private static final int CURVE_CYLINDER_SAMPLES = 8;
 
 	private float dz = 0; // distance to camera. Manipulated with wheel or when 
 //float rx=-0.06*TWO_PI, ry=-0.04*TWO_PI;    // view angles manipulated when space pressed but not mouse
 	private float rx = 0, ry = 0;    // view angles manipulated when space pressed but not mouse
-	private  boolean animating = false, tracking = false, center = true, gouraud = true, showControlPolygon = false, showNormals = false;
-	private boolean showExtrapolating = true;
-	private boolean showDebug = true;
-	private float t = 0, s = 0;
+	private  boolean animating = false, tracking = false, center = true, gouraud = true;
+	private boolean interpolateControlCurve = true;
 	private boolean viewpoint = false;
 	private PImage myFace;
 	private boolean filming = false, takePicture = false;
@@ -42,8 +42,9 @@ public class CurveAverage extends PApplet {
 	private Vector3f[] curveA, curveB;
 	boolean recalculateCurve = false;
 
-	String title = "6491 P2 2015: 3D swirl", name = "Sebastian Weiß, Kristian Eberhardson",
-			menu = "1-4: change interpolation, !:picture, ~:(start/stop)capture, space:rotate, s/wheel:closer, a:anim, e:show extrapolating, d:show debug, #:quit",
+	String title = "6491 P2 2015: 3D swirl", name = "Sebastian Weiß, Can Erdogan",
+			menu = "1-4: change interpolation, !:picture, ~:(start/stop)capture, space:rotate, "
+			+ "s/wheel:closer, a:anim, i:interpolate control curve, #:quit",
 			guide = "click'n'drag center of frames or arrow tips to change the start frame (green) and end frame (red)"; // user's guide
 
 	public static void main(String[] args) {
@@ -148,12 +149,23 @@ public class CurveAverage extends PApplet {
 		}
 		//show curve
 		fill(blue);
-		for (int i=1; i<curveA.length; ++i) {
-			showCylinder(curveA[i-1], curveA[i], 0.05f*SCALE, 8);
+		if (interpolateControlCurve) {
+			Vector3f P0 = Curve.interpolate(curveA, 0);
+			int m = (curveA.length-1)*CURVE_INTERPOLATION_SAMPLES;
+			for (int i=1; i<=m; ++i) {
+				Vector3f P1 = Curve.interpolate(curveA, i/(float) m);
+				showCylinder(P0, P1, 0.05f*SCALE, CURVE_CYLINDER_SAMPLES);
+				P0 = P1;
+			}
+//			interpolateControlCurve = false;
+		} else {
+			for (int i=1; i<curveA.length; ++i) {
+				showCylinder(curveA[i-1], curveA[i], 0.05f*SCALE, CURVE_CYLINDER_SAMPLES);
+			}
 		}
 		fill(red);
 		for (int i=1; i<curveB.length; ++i) {
-			showCylinder(curveB[i-1], curveB[i], 0.05f*SCALE, 8);
+			showCylinder(curveB[i-1], curveB[i], 0.05f*SCALE, CURVE_CYLINDER_SAMPLES);
 		}
 	}
 	
@@ -190,20 +202,11 @@ public class CurveAverage extends PApplet {
 		if (key == '!') {
 			takePicture = true;
 		}
-		if (key == ']') {
-			showControlPolygon = !showControlPolygon;
-		}
-		if (key == '|') {
-			showNormals = !showNormals;
-		}
 		if (key == 'G') {
 			gouraud = !gouraud;
 		}
-		if (key == 'e') {
-			showExtrapolating = !showExtrapolating;
-		}
-		if (key == 'd') {
-			showDebug = !showDebug;
+		if (key == 'i') {
+			interpolateControlCurve = !interpolateControlCurve;
 		}
 
 		// if(key=='.') F=P.Picked(); // snaps focus F to the selected vertex of P (easier to rotate and zoom while keeping it in center)
@@ -215,7 +218,6 @@ public class CurveAverage extends PApplet {
 		}
 		if (key == 'a') {
 			animating = !animating; // toggle animation
-			t = 0;
 		}
 		if (key == ',') {
 			viewpoint = !viewpoint;
