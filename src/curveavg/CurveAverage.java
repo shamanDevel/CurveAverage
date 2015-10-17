@@ -19,8 +19,9 @@ public class CurveAverage extends PApplet {
 	private static final float PICK_TOLERANCE = 20;
 	public static final float DEG_TO_RAD = PI / 180.0f;
 	private static final float FPS = 60;
-	private static final int CURVE_INTERPOLATION_SAMPLES = 16;
+	private static final int CURVE_INTERPOLATION_SAMPLES = 32;
 	private static final int CURVE_CYLINDER_SAMPLES = 8;
+	private static final float CURVE_CYLINDER_RADIUS = 0.15f*SCALE;
 
 	private float dz = 0; // distance to camera. Manipulated with wheel or when 
 //float rx=-0.06*TWO_PI, ry=-0.04*TWO_PI;    // view angles manipulated when space pressed but not mouse
@@ -147,25 +148,100 @@ public class CurveAverage extends PApplet {
 			sphere(0.1f*SCALE);
 			popMatrix();
 		}
-		//show curve
+		
+		//show curves
 		fill(blue);
 		if (interpolateControlCurve) {
-			Vector3f P0 = Curve.interpolate(curveA, 0);
+//			Vector3f P0 = Curve.interpolate(curveA, 0);
+//			int m = (curveA.length-1)*CURVE_INTERPOLATION_SAMPLES;
+//			for (int i=1; i<=m; ++i) {
+//				Vector3f P1 = Curve.interpolate(curveA, i/(float) m);
+//				showCylinder(P0, P1, 0.05f*SCALE, CURVE_CYLINDER_SAMPLES);
+//				P0 = P1;
+//			}
 			int m = (curveA.length-1)*CURVE_INTERPOLATION_SAMPLES;
-			for (int i=1; i<=m; ++i) {
-				Vector3f P1 = Curve.interpolate(curveA, i/(float) m);
-				showCylinder(P0, P1, 0.05f*SCALE, CURVE_CYLINDER_SAMPLES);
-				P0 = P1;
+			Vector3f[] C = new Vector3f[m+1];
+			for (int i=0; i<=m; ++i) {
+				C[i] = Curve.interpolate(curveA, i/(float)m);
 			}
-//			interpolateControlCurve = false;
+			showQuads(C, CURVE_CYLINDER_RADIUS, CURVE_CYLINDER_SAMPLES, blue);
 		} else {
 			for (int i=1; i<curveA.length; ++i) {
 				showCylinder(curveA[i-1], curveA[i], 0.05f*SCALE, CURVE_CYLINDER_SAMPLES);
 			}
 		}
+		
 		fill(red);
-		for (int i=1; i<curveB.length; ++i) {
-			showCylinder(curveB[i-1], curveB[i], 0.05f*SCALE, CURVE_CYLINDER_SAMPLES);
+		if (interpolateControlCurve) {
+			int m = (curveB.length-1)*CURVE_INTERPOLATION_SAMPLES;
+			Vector3f[] C = new Vector3f[m+1];
+			for (int i=0; i<=m; ++i) {
+				C[i] = Curve.interpolate(curveB, i/(float)m);
+			}
+			showQuads(C, CURVE_CYLINDER_RADIUS, CURVE_CYLINDER_SAMPLES, red);
+		} else {
+			for (int i=1; i<curveB.length; ++i) {
+				showCylinder(curveB[i-1], curveB[i], 0.05f*SCALE, CURVE_CYLINDER_SAMPLES);
+			}
+		}
+	}
+	
+	void showQuads(Vector3f[] C, float r, int ne, int col) {
+		Vector3f L[] = new Vector3f[C.length];
+		L[0] = C[1].subtract(C[0]).crossLocal(Vector3f.UNIT_Z).normalizeLocal();
+		Vector3f[][] P = new Vector3f[2][ne];
+		int p = 0;
+		boolean dark = true;
+		float[] c = new float[ne];
+		float[] s = new float[ne];
+		for (int j = 0; j < ne; j++) {
+			c[j] = r * cos(TWO_PI * j / ne);
+			s[j] = r * sin(TWO_PI * j / ne);
+		}
+		for (int j = 0; j < ne; j++) {
+			P[p][j] = C[0].add(C[1]);
+			P[p][j].addScaleLocal(c[j], L[0]);
+			P[p][j].addScaleLocal(s[j], L[0].cross(C[1].subtract(C[0]).normalizeLocal()));
+		}
+		p = 1 - p;
+		for (int i = 1; i < C.length - 1; i++) {
+			dark = !dark;
+			Vector3f I = C[i].subtract(C[i-1]).normalizeLocal();
+			Vector3f Ip = C[i+1].subtract(C[i]).normalizeLocal();
+			Vector3f IpmI = Ip.subtract(I);
+			Vector3f N = I.cross(Ip);
+			if (N.lengthSquared() < 0.001*0.001) {
+				L[i] =L[i - 1];
+			} else {
+				float mixed = N.normalize().cross(I).dot(L[i-1]);
+				L[i] = L[i-1].clone();
+				L[i].addScaleLocal(mixed, N.normalize().cross(IpmI));
+			}
+			I = L[i].normalize();
+			Vector3f J = I.cross(Ip).normalize();
+			for (int j = 0; j < ne; j++) {
+				P[p][j] = C[i].add(C[i+1]);
+				P[p][j].addScaleLocal(c[j], I);
+				P[p][j].addScaleLocal(s[j], J);
+			}
+			p = 1 - p;
+			if (i > 0) {
+				for (int j = 0; j < ne; j++) {
+					if (dark) {
+						fill(200, 200, 200);
+					} else {
+						fill(col);
+					}
+					dark = !dark;
+					int jp = (j + ne - 1) % ne;
+					beginShape(QUADS);
+					vertex(P[p][jp].mult(0.5f));
+					vertex(P[p][j].mult(0.5f));
+					vertex(P[1 - p][j].mult(0.5f));
+					vertex(P[1 - p][jp].mult(0.5f));
+					endShape(CLOSE);
+				}
+			};
 		}
 	}
 	
@@ -180,14 +256,14 @@ public class CurveAverage extends PApplet {
 		Vector3f P = A.addScale(r, J);
 		Vector3f Q = B.addScale(r, J);
 		beginShape(QUAD_STRIP);
-		for (float t = 0; t < TWO_PI; t += TWO_PI / s) {
+		for (float t = 0; t <= TWO_PI; t += TWO_PI / s) {
 			Vector3f v1 = A.addScale((float) (r*Math.cos(t)), J)
 					.addScale((float) (r*Math.sin(t)), K);
 			Vector3f v2 = B.addScale((float) (r*Math.cos(t)), J)
 					.addScale((float) (r*Math.sin(t)), K);
 			vertex(v1.x, v1.y, v1.z);
 			vertex(v2.x, v2.y, v2.z);
-		};
+		}
 		endShape();
 	}
 
@@ -347,6 +423,9 @@ Pv3D.pt ScreenCenter() {
 void vertex(Pv3D.pt P) {
 		vertex(P.x, P.y, P.z);
 	}
+void vertex(Vector3f P) {
+	vertex(P.x, P.y, P.z);
+}
 
 	;                                           // vertex for shading or drawing
 void v(Pv3D.pt P) {

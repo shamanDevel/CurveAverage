@@ -10,7 +10,7 @@ package curveavg;
  * @author Sebastian Weiss
  */
 public class Curve {
-	private static final float EPSILON = 0.00001f;
+	private static final float EPSILON = 0.001f;
 	private static final float TANGENT_SCALE = 1f;
 	
 	/**
@@ -34,16 +34,16 @@ public class Curve {
 		}
 		if (i==0) {
 			//first part
-			Vector3f P0 = controlPoints[1];
-			Vector3f P1 = controlPoints[0];
-			Vector3f T0 = controlPoints[0].subtract(controlPoints[2]).multLocal(TANGENT_SCALE);
-			return quadraticHermite(P0, T0, P1, 1-frac);
+			Vector3f P0 = controlPoints[0];
+			Vector3f P1 = controlPoints[1];
+			Vector3f T0 = controlPoints[2].subtract(controlPoints[0]).multLocal(TANGENT_SCALE);
+			return quadraticHermite(P0, T0, P1, frac);
 		} else if (i==n-2) {
 			//last part
-			Vector3f P0 = controlPoints[n-2];
-			Vector3f P1 = controlPoints[n-1];
-			Vector3f T0 = controlPoints[n-1].subtract(controlPoints[n-3]).multLocal(TANGENT_SCALE);
-			return quadraticHermite(P0, T0, P1, frac);
+			Vector3f P0 = controlPoints[n-1];
+			Vector3f P1 = controlPoints[n-2];
+			Vector3f T0 = controlPoints[n-3].subtract(controlPoints[n-1]).multLocal(TANGENT_SCALE);
+			return quadraticHermite(P0, T0, P1, 1-frac);
 		} else {
 			//middle
 			Vector3f P0 = controlPoints[i];
