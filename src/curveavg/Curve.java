@@ -13,6 +13,8 @@ public class Curve {
 	private static final float EPSILON = 0.001f;
 	private static final float TANGENT_SCALE = 1f;
 	
+	//TODO: compute the curve interpolation uniform distributed over the arc-length
+	
 	/**
 	 * Computes the interpolation at the specified time.
 	 * 
@@ -55,6 +57,66 @@ public class Curve {
 	}
 	
 	/**
+	 * Interpolates uniformly in time t, not equispaced in arc length!
+	 * @param controlPoints
+	 * @param numSamples
+	 * @return 
+	 */
+	public static Vector3f[] interpolateUniformly(Vector3f[] controlPoints, int numSamples) {
+		Vector3f[] samples = new Vector3f[numSamples];
+		float step = 1f / (numSamples-1);
+		for (int i=0; i<numSamples; ++i) {
+			samples[i] = interpolate(controlPoints, i*step);
+		}
+		return samples;
+	}
+	
+	/**
+	 * Produces a equispaced sampling in arc length of the curve interpolation. 
+	 * @param controlPoints the control points
+	 * @param numSamples the number of samples
+	 * @return equispaced samplings of the interpolated curve.
+	 * @see #interpolate(curveavg.Vector3f[], float) 
+	 */
+	public static Vector3f[] interpolateEquispacedArcLength(Vector3f[] controlPoints, int numSamples) {
+		//First step: Oversample curve to calculate the total arc length
+		Vector3f[] samples1 = new Vector3f[numSamples * 2];
+		float step1 = samples1.length-1;
+		for (int i=0; i<samples1.length; ++i) {
+			samples1[i] = interpolate(controlPoints, i/step1);
+		}
+		//Second step: calculate cumulative distances between samples and sum them
+		float[] distances = new float[samples1.length-1];
+		float arcLength = 0;
+		for (int i=0; i<distances.length; ++i) {
+			distances[i] = samples1[i].distance(samples1[i+1]);
+			if (i>0) {
+				distances[i] += distances[i-1];
+			}
+		}
+		arcLength = distances[distances.length-1];
+		//Third step: sample final curve equispaced
+		Vector3f[] samples2 = new Vector3f[numSamples];
+		samples2[0] = controlPoints[0]; //fix first and last point
+		samples2[numSamples-1] = controlPoints[controlPoints.length-1];
+		int j=0;
+		float step2 = arcLength / (numSamples-1);
+		for (int i=1; i<numSamples-1; ++i) {
+			float d = i*step2;
+			//search j so that distances[j]<=d<distances[j+1]
+			while (true) {
+				if (distances[j]<=d && distances[j+1]>d) {
+					break;
+				}
+				j++;
+			}
+			float t = (j + (d-distances[j])/(distances[j+1]-distances[j])) / step1;
+			samples2[i] = interpolate(controlPoints, t);
+		}
+		return samples2;
+	}
+	
+	/**
 	 * Hermite interpolation of the points P0 to P1 at time t=0 to t=1 with the
 	 * specified velocities T0 and T1.
 	 * @param P0
@@ -74,6 +136,8 @@ public class Curve {
 		P.addScaleLocal(t3 - t2, T1);
 		return P;
 	}
+	
+
 	
 	/**
 	 * A variation of Hermite where a velocity is given only for the first point.
