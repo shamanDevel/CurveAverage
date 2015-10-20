@@ -1025,7 +1025,7 @@ public final class Vector3f implements Cloneable, java.io.Serializable {
      * @return the string representation of this vector.
      */
     public String toString() {
-        return "(" + x + ", " + y + ", " + z + ")";
+        return "[" + x + ", " + y + ", " + z + "]";
     }
 
     public float getX() {

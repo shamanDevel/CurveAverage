@@ -7,6 +7,8 @@ package curveavg;
 
 import processing.core.*;
 import processing.event.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static curveavg.Pv3D.*;
 
@@ -120,7 +122,10 @@ public class CurveAverage extends PApplet {
 		computeProjectedVectors(); // computes screen projections I, J, K of basis vectors (see bottom of pv3D): used for dragging in viewer's frame    
 		
 		calculateAndShowCurve();
-		
+		List<MedialAxisTransform.TracePoint> ma = new ArrayList <MedialAxisTransform.TracePoint> ();
+                MedialAxisTransform.trace(curveA, curveB, ma);
+                exit();
+                
 		popMatrix(); // done with 3D drawing. Restore front view for writing text on canvas
 
       // for demos: shows the mouse and the key pressed (but it may be hidden by the 3D model)
