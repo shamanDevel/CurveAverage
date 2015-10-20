@@ -142,6 +142,7 @@ public class Curve {
 	/**
 	 * A variation of Hermite where a velocity is given only for the first point.
 	 * It interpolates P0 at t=0 and P1 at t=1.
+         * P(t) = (t^2 - 2*t + 1) * P0 + (-t^2 + 2*t) * P1 + (t^2 - t) * T0
 	 * @param P0
 	 * @param T0
 	 * @param P1
