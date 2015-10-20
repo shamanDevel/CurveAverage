@@ -122,9 +122,10 @@ public class CurveAverage extends PApplet {
 		computeProjectedVectors(); // computes screen projections I, J, K of basis vectors (see bottom of pv3D): used for dragging in viewer's frame    
 		
 		calculateAndShowCurve();
-		List<MedialAxisTransform.TracePoint> ma = new ArrayList <MedialAxisTransform.TracePoint> ();
-                MedialAxisTransform.trace(curveA, curveB, ma);
-                exit();
+		
+//		List<MedialAxisTransform.TracePoint> ma = new ArrayList <MedialAxisTransform.TracePoint> ();
+//                MedialAxisTransform.trace(curveA, curveB, ma);
+//                exit();
                 
 		popMatrix(); // done with 3D drawing. Restore front view for writing text on canvas
 
