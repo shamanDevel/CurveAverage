@@ -100,10 +100,12 @@ public class CurveAverage extends PApplet {
                 
                 // Add a debug point
                 debugPoints = new Vector3f[] {
-                    new Vector3f(34,35,56),
+                    new Vector3f(34,35,56)};
+                /*
                     new Vector3f(150, 90, 200),
                     new Vector3f(-70, -30, -70)
                 };
+                        */
 	}
 
 	public void draw() {
@@ -125,7 +127,9 @@ public class CurveAverage extends PApplet {
 		rotateY(ry); // rotates the model around the new origin (center of screen)
 		rotateX(PI / 2); // rotates frame around X to make X and Y basis vectors parallel to the floor
 		noStroke(); // if you use stroke, the weight (width) of it will be scaled with you scaleing factor
-		showFrame(50); // X-red, Y-green, Z-blue arrows
+                
+                /// TODO: The visualization of the arrows do not respect cross product rules. 
+		showFrame(-PI/2, PI/2, 0, 50); // X-red, Y-green, Z-blue arrows
 
 		computeProjectedVectors(); // computes screen projections I, J, K of basis vectors (see bottom of pv3D): used for dragging in viewer's frame    
 		
@@ -137,7 +141,6 @@ public class CurveAverage extends PApplet {
 		fill(red);
 		for (Vector3f p : debugPoints) {
                     pushMatrix();
-                    System.out.println("Point to draw: " + p.toString());
                     translate(p.x, p.y, p.z);
                     sphere(0.1f*SCALE);
                     popMatrix();
@@ -145,14 +148,37 @@ public class CurveAverage extends PApplet {
                 
                 boolean visualizeClosest = true;
                 if(visualizeClosest) {
+                    
+                    // Handle the first curve
                     MedialAxisTransform.ClosestInfo info1 = MedialAxisTransform.findClosest(curveA, debugPoints[0]);
                     System.out.println("First curve: index: " + info1.curveIndex + ", time: " + info1.time + ", point: " + info1.Pt.toString());
-                    if(info1.curveIndex > -1 && info1.curveIndex < curveA.length-1 && info1.time >= 0 && info1.time <= 1)
-                        debugPoints[1] = info1.Pt;
+                    if(info1.curveIndex > -1 && info1.curveIndex < curveA.length-1 && info1.time >= 0 && info1.time <= 1) {
+                        
+                        // Visualize the closest point
+                        pushMatrix();
+                        translate(info1.Pt.x, info1.Pt.y, info1.Pt.z);
+                        sphere(0.1f*SCALE);
+                        popMatrix();
+                        
+                        // Visualize the tangent
+                                            rotateY(PI / 2);
+
+                     }
+                    /*
+                    noStroke();
+                    fill(metal);
+                    showArrow(d, d / 10);
+                    fill(red);
+                    pushMatrix();
+                    rotateY(PI / 2);
+                    showArrow(d, d / 10);
+                    popMatrix();
+
                     MedialAxisTransform.ClosestInfo info2 = MedialAxisTransform.findClosest(curveB, debugPoints[0]);
                     System.out.println("Second curve: index: " + info2.curveIndex + ", time: " + info2.time + ", point: " + info2.Pt.toString());
                     if(info2.curveIndex > -1 && info2.curveIndex < curveB.length-1 && info2.time >= 0 && info2.time <= 1)
                         debugPoints[2] = info2.Pt;
+                            */
                 }
                 
                 
@@ -745,20 +771,23 @@ boolean intersect(Pv3D.pt P, Pv3D.pt Q, Pv3D.pt A, Pv3D.pt B, Pv3D.pt C, Pv3D.pt
 	}
 
 // **************************** PRIMITIVE
-	void showFrame(float d) {
+	void showFrame(float angle_x, float angle_y, float angle_z, float d) {
 		noStroke();
 		fill(metal);
 		sphere(d / 10);
 		fill(blue);
+                pushMatrix();
+                rotateZ(angle_z);
 		showArrow(d, d / 10);
+                popMatrix();
 		fill(red);
 		pushMatrix();
-		rotateY(PI / 2);
+		rotateY(angle_y);
 		showArrow(d, d / 10);
 		popMatrix();
 		fill(green);
 		pushMatrix();
-		rotateX(-PI / 2);
+		rotateX(angle_x);
 		showArrow(d, d / 10);
 		popMatrix();
 	}
