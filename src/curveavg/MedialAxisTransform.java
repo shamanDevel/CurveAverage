@@ -74,7 +74,7 @@ public class MedialAxisTransform {
             public Vector3f v;
         }
 
-        
+        // ---------------------------------------------------------------------
         /**
          * Find the medial axis of two lines defined by a point and a unit vector
          * each. 
@@ -138,6 +138,7 @@ public class MedialAxisTransform {
             return maLine;
         }
         
+        // ---------------------------------------------------------------------
         /**
          * Perform Newton's algorithm to find the zero of the derivative wrt time
          * of the distance between a point and a cubic hermite function. The equation
@@ -152,6 +153,7 @@ public class MedialAxisTransform {
             public float[] im;
         }
 
+        // ---------------------------------------------------------------------
         /**
          * http://stackoverflow.com/questions/13328676/c-solving-cubic-equations
          */
@@ -208,6 +210,8 @@ public class MedialAxisTransform {
             res.re[2] = -term1 + (float) (r13*Math.cos((dum1 + 4.0*Math.PI)/3.0));
             return res;
         }
+        
+        // ---------------------------------------------------------------------
         /**
          * Find the zero of the derivative wrt time of the distance between a 
          * point and a quadratic hermite function in cubic closed-form.

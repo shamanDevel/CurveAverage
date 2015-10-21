@@ -56,7 +56,7 @@ public class TestMedialAxisTransform {
 				float proj2 = v2.dot(randPoint.subtract(p2));
 				float dist2 = (float) Math.sqrt((randPoint.subtract(p2)).lengthSquared() - proj2 * proj2);
 				System.out.println("Distances: " + dist1 + ", " + dist2);
-				assertEquals(0, Math.abs(dist1-dist2), 1e-5);
+				assertEquals(0, Math.abs(dist1-dist2), 1e-3);
 			}
 		}
 	}
