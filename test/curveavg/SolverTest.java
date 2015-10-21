@@ -16,79 +16,23 @@
  */
 package curveavg;
 
-import org.apache.commons.math3.analysis.DifferentiableUnivariateFunction;
-import org.apache.commons.math3.analysis.solvers.NewtonSolver;
-import org.apache.commons.math3.analysis.UnivariateFunction;
+import org.apache.commons.math3.analysis.solvers.NewtonRaphsonSolver;
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 import org.apache.commons.math3.analysis.differentiation.UnivariateDifferentiableFunction;
-import org.apache.commons.math3.analysis.function.Sin;
-import org.apache.commons.math3.util.FastMath;
 import org.junit.Assert;
 import org.junit.Test;
 
- class QuinticFunction implements UnivariateDifferentiableFunction {
+public final class SolverTest {
 
-    /* Evaluate quintic.
-     * @see org.apache.commons.math3.UnivariateFunction#value(double)
-     */
-    public double value(double x) {
-        return (x-1)*(x-0.5)*x*(x+0.5)*(x+1);
-    }
-
-    public DerivativeStructure value(DerivativeStructure t) {
-        return t.subtract(1).multiply(t.subtract(0.5)).multiply(t).multiply(t.add(0.5)).multiply(t.add(1));
-    }
-
-}
-
-/**
- * @deprecated
- */
-@Deprecated
-public final class NewtonSolverTest {
-    /**
-     *
-     */
-    @Test
-    public void testSinZero() {
-        DifferentiableUnivariateFunction f = new Sin();
-        double result;
-
-        NewtonSolver solver = new NewtonSolver();
-        result = solver.solve(100, f, 3, 4);
-        Assert.assertEquals(result, FastMath.PI, solver.getAbsoluteAccuracy());
-
-        result = solver.solve(100, f, 1, 4);
-        Assert.assertEquals(result, FastMath.PI, solver.getAbsoluteAccuracy());
-
-        Assert.assertTrue(solver.getEvaluations() > 0);
-    }
-
-    /**
-     *
-     */
     @Test
     public void testQuinticZero() {
-        final UnivariateDifferentiableFunction q = new QuinticFunction();
-        DifferentiableUnivariateFunction f = new DifferentiableUnivariateFunction() {
 
-            public double value(double x) {
-                return q.value(x);
-            }
-
-            public UnivariateFunction derivative() {
-                return new UnivariateFunction() {
-                    public double value(double x) {
-                        return q.value(new DerivativeStructure(1, 1, 0, x)).getPartialDerivative(1);
-                    }
-                };
-            }
-
-        };
+        UnivariateDifferentiableFunction f = new QuinticFunction(1, 0.0, -5/4.0, 0.0, 0.25, 0.0);
         double result;
 
-        NewtonSolver solver = new NewtonSolver();
-        result = solver.solve(100, f, -0.2, 0.2);
+        NewtonRaphsonSolver solver = new NewtonRaphsonSolver();
+        result = solver.solve(100, f, -0.19, -0.2);
+
         Assert.assertEquals(result, 0, solver.getAbsoluteAccuracy());
 
         result = solver.solve(100, f, -0.1, 0.3);
@@ -120,5 +64,6 @@ public final class NewtonSolverTest {
 
         result = solver.solve(100, f, 0.85, 5);
         Assert.assertEquals(result, 1.0, solver.getAbsoluteAccuracy());
+
     }
 }

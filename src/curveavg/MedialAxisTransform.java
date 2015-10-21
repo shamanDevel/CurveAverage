@@ -74,7 +74,6 @@ public class MedialAxisTransform {
             public Vector3f v;
         }
 
-        // ---------------------------------------------------------------------
         /**
          * Find the medial axis of two lines defined by a point and a unit vector
          * each. 
@@ -138,33 +137,47 @@ public class MedialAxisTransform {
             return maLine;
         }
         
-        // ---------------------------------------------------------------------
         /**
          * Perform Newton's algorithm to find the zero of the derivative wrt time
          * of the distance between a point and a cubic hermite function. The equation
          * is a quintic, thus no closed form.
          */
-        public static float closestPointOnCubicHermite () {
+        public static float closestPointOnCubicHermite (Vector3f P0, Vector3f P1, Vector3f T0, Vector3f T1, Vector3f Q) {
+            
+            // Get the parameters of the quintic function dfdt
+            float f = - 2*T0.x*(Q.x - P0.x) - 2*T0.y*(Q.y - P0.y) - 2*T0.z*(Q.z - P0.z);
+            float e = 2*(Q.x - P0.x)*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x) + 2*(Q.y - P0.y)*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y) + 2*(Q.z - P0.z)*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z) + 2*T0.x*T0.x + 2*T0.y*T0.y + 2*T0.z*T0.z;
+            float d = - 2*T0.x*(2*T0.x + T1.x + 3*P0.x - 3*P1.x) - 2*T0.y*(2*T0.y + T1.y + 3*P0.y - 3*P1.y) - 2*T0.z*(2*T0.z + T1.z + 3*P0.z - 3*P1.z) - 2*T0.x*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x) - 2*T0.y*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y) - 2*T0.z*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z) - 2*(Q.x - P0.x)*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x) - 2*(Q.y - P0.y)*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y) - 2*(Q.z - P0.z)*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z);
+            float c = 2*(2*T0.x + T1.x + 3*P0.x - 3*P1.x)*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x) + 2*(2*T0.y + T1.y + 3*P0.y - 3*P1.y)*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y) + 2*(2*T0.z + T1.z + 3*P0.z - 3*P1.z)*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z) + 2*T0.x*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x) + 2*T0.y*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y) + 2*T0.z*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z) + 2*T0.x*(T0.x + T1.x + 2*P0.x - 2*P1.x) + 2*T0.y*(T0.y + T1.y + 2*P0.y - 2*P1.y) + 2*T0.z*(T0.z + T1.z + 2*P0.z - 2*P1.z);
+            float b = - 2*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x)*(T0.x + T1.x + 2*P0.x - 2*P1.x) - 2*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y)*(T0.y + T1.y + 2*P0.y - 2*P1.y) - 2*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z)*(T0.z + T1.z + 2*P0.z - 2*P1.z) - 2*(2*T0.x + T1.x + 3*P0.x - 3*P1.x)*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x) - 2*(2*T0.y + T1.y + 3*P0.y - 3*P1.y)*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y) - 2*(2*T0.z + T1.z + 3*P0.z - 3*P1.z)*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z);
+            float a = 2*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x)*(T0.x + T1.x + 2*P0.x - 2*P1.x) + 2*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y)*(T0.y + T1.y + 2*P0.y - 2*P1.y) + 2*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z)*(T0.z + T1.z + 2*P0.z - 2*P1.z);
+
+            
             return 0f;
+            
         }
         
-        public static class CubicResult implements Cloneable, java.io.Serializable {
+        public static class SolverResult implements Cloneable, java.io.Serializable {
             public float[] re ;
             public float[] im;
         }
 
-        // ---------------------------------------------------------------------
+        public static SolverResult solveQuintic (float a, float b, float c, float d, float e, float f) {
+            return new SolverResult ();
+        }
+        
+    
         /**
          * http://stackoverflow.com/questions/13328676/c-solving-cubic-equations
          */
-        public static CubicResult solveCubic (float a, float b, float c, float d) {
+        public static SolverResult solveCubic (float a, float b, float c, float d) {
             
             // Solve quadratic
             if(Math.abs(d) < 1e-5) {
                 assert(false);
             }
             
-            CubicResult res = new CubicResult();
+            SolverResult res = new SolverResult();
             res.re = new float[3];
             res.im = new float[3];
             b /= a;
@@ -233,7 +246,7 @@ public class MedialAxisTransform {
             float a = 2*(T0.x + P0.x - P1.x)*(2*T0.x + 2*P0.x - 2*P1.x) + 2*(T0.y + P0.y - P1.y)*(2*T0.y + 2*P0.y - 2*P1.y) + 2*(T0.z + P0.z - P1.z)*(2*T0.z + 2*P0.z - 2*P1.z);
 
             // Compute the roots of the cubic
-            CubicResult res = solveCubic(a,b,c,d);
+            SolverResult res = solveCubic(a,b,c,d);
             
             // For each nonimaginary root, with real part within [0,1], compute 
             // the distance to the input point and find the smallest value
