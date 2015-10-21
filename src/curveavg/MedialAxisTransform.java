@@ -15,8 +15,29 @@ import org.apache.commons.math3.exception.NumberIsTooLargeException;
  * @author Sebastian Weiss
  */
 public class MedialAxisTransform {
+            
+        public static class Line {
+            public Vector3f p;
+            public Vector3f v;
+        }
+        
+        public static class SolverResult implements Cloneable, java.io.Serializable {
+            public float[] re ;
+            public float[] im;
+        }
 	
-	/**
+        public static class ClosestInfo implements Cloneable, java.io.Serializable {
+            Vector3f Pt;
+            float time;
+            Vector3f tangent;
+            int curveIndex;      /// Index of the control point
+            ClosestInfo () { Pt = tangent = new Vector3f(-1f,-1f,-1f); time = -1; curveIndex = -1; }
+            ClosestInfo (Vector3f Pt_, Vector3f t_, float time_, int c) {
+                Pt = Pt_; tangent = t_; time = time_; curveIndex = c;
+            }
+        }
+          
+        /**
 	 * Represents a point on the medial axis, 
 	 */
 	public static class TracePoint {
@@ -69,11 +90,6 @@ public class MedialAxisTransform {
             float s = -(vy2*x1 - vy2*x2 - vx2*y1 + vx2*y2)/denom;
             float u = -(vy1*x1 - vy1*x2 - vx1*y1 + vx1*y2)/denom;
             return new Vector2f(s, u);
-        }
-        
-        public static class Line {
-            public Vector3f p;
-            public Vector3f v;
         }
 
         /**
@@ -180,14 +196,11 @@ public class MedialAxisTransform {
             
             return time;
         }
-        
-        public static class SolverResult implements Cloneable, java.io.Serializable {
-            public float[] re ;
-            public float[] im;
-        }
 
-        /// Uses the NewtonRaphson algorithm iteratively to span the range [0,1]
-        /// and find all the real roots. 
+        /**
+         * Uses the NewtonRaphson algorithm iteratively to span the range [0,1]
+         * and find all the real roots. 
+         */
         public static SolverResult solveQuintic (float a, float b, float c, float d, float e, float f) {
             
             // Initialize the result
@@ -225,12 +238,12 @@ public class MedialAxisTransform {
                 minBound = sol+1e-3;
                 root_idx++;
             }
-            System.out.println("#cubic roots: " + root_idx);
+            // System.out.println("#cubic roots: " + root_idx);
             return res;
         }
         
-    
         /**
+         * Solves a cubic equation using a closed-form approach.
          * http://stackoverflow.com/questions/13328676/c-solving-cubic-equations
          */
         public static SolverResult solveCubic (float a, float b, float c, float d) {
@@ -287,7 +300,6 @@ public class MedialAxisTransform {
             return res;
         }
         
-        // ---------------------------------------------------------------------
         /**
          * Find the zero of the derivative wrt time of the distance between a 
          * point and a quadratic hermite function in cubic closed-form.
@@ -337,6 +349,58 @@ public class MedialAxisTransform {
             return time;
         }
         
+        /**
+         * Given a point Q, finds the closest point on the given curve. Returns
+         * the point and the tangent to the curve at that point.
+         * @param curve
+         * @param Q 
+         */
+        public static ClosestInfo findClosest (Vector3f[] curve, Vector3f Q) { 
+            
+            // Go through the curve segment by segment and treat quadratic and
+            // cubic segments differently. If the point is found to belong
+            // to one of the segments stop.
+            int n = curve.length;
+            for(int i = 0; i < n-1; i++) {
+                
+                // First segment
+                if (i==0) {
+                    Vector3f P0 = curve[0];
+                    Vector3f P1 = curve[1];
+                    Vector3f T0 = curve[2].subtract(curve[0]).multLocal(Curve.TANGENT_SCALE);
+                    float time = closestPointOnQuadraticHermite(P0, T0, P1, Q);
+                    if(time > -1e-3) 
+                        return new ClosestInfo(Curve.quadraticHermite(P0, T0, P1, time),
+                            Curve.quadraticHermiteTangent(P0, T0, P1, time), time, i);
+		} 
+                
+                // Last segment
+                else if (i==n-2) {
+                    Vector3f P0 = curve[n-1];
+                    Vector3f P1 = curve[n-2];
+                    Vector3f T0 = curve[n-3].subtract(curve[n-1]).multLocal(Curve.TANGENT_SCALE);
+                    float time = closestPointOnQuadraticHermite(P0, T0, P1, Q);
+                    if(time > -1e-3) 
+                        return new ClosestInfo(Curve.quadraticHermite(P0, T0, P1, time),
+                            Curve.quadraticHermiteTangent(P0, T0, P1, time), time, i);
+		}
+                
+                // Middle segment
+                else {
+                    Vector3f P0 = curve[i];
+                    Vector3f P1 = curve[i+1];
+                    Vector3f T0 = curve[i+1].subtract(curve[i-1]).multLocal(Curve.TANGENT_SCALE);
+                    Vector3f T1 = curve[i+2].subtract(curve[i]).multLocal(Curve.TANGENT_SCALE);
+                    float time = closestPointOnCubicHermite(P0, T0, P1, T1, Q);
+                    if(time > -1e-3) 
+                        return new ClosestInfo(Curve.cubicHermite(P0, T0, P1, T1, time),
+                            Curve.cubicHermiteTangent(P0, T0, P1, T1, time), time, i);
+		}
+            }
+            assert(false);  // shouldn't reach here
+            return new ClosestInfo();
+        }
+        
 	/**
 	 * Traces the medial axis of the two curves {@code curveA} and {@code curveB}.
 	 * <br>
@@ -352,6 +416,7 @@ public class MedialAxisTransform {
 	 */
 	public static void trace(Vector3f[] curveA, Vector3f[] curveB, List<TracePoint> output) {
 		
+            /*
             // Start with the common point 
             Vector3f point = curveA[0];
             
@@ -360,6 +425,7 @@ public class MedialAxisTransform {
                 // Find which segment of the curves the point coincides to
                 
             }
+                    */
                 
 	}
 }

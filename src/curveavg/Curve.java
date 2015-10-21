@@ -10,8 +10,8 @@ package curveavg;
  * @author Sebastian Weiss
  */
 public class Curve {
-	private static final float EPSILON = 0.001f;
-	private static final float TANGENT_SCALE = 1f;
+	public static final float EPSILON = 0.001f;
+	public static final float TANGENT_SCALE = 1f;
 	
 	//TODO: compute the curve interpolation uniform distributed over the arc-length
 	
@@ -157,4 +157,32 @@ public class Curve {
 		P.addScaleLocal(t2 - t, T0);
 		return P;
 	}
+        
+        /**
+	 * Tangent for a quadratic Hermite.
+         * P'(t) = (2*t - 2) * P0 + (-2*t + 2) * P1 + (2*t - 1) * T0
+	 */
+	public static Vector3f quadraticHermiteTangent(Vector3f P0, Vector3f T0, Vector3f P1, float t) {
+		Vector3f T = new Vector3f();
+		T.addScaleLocal(2*t - 2, P0);
+		T.addScaleLocal(-2*t + 2, P1);
+		T.addScaleLocal(2*t-1, T0);
+		return T;
+	}
+        
+        /**
+	 * Tangent for a cubic Hermite.
+         * P(t) = (2*t^3 - 3*t^2 + 1) * P0 + (t^3-2*t^2+t) * T0 + (-2*t^3+3*t^2) * P1 + (t^3-t^2) * T1
+         * P'(t) = (6*t^2 - 6*t) * P0 + (3*t^2-4*t+1) * T0 + (-6*t^2+6*t) * P1 + (3*t^2-2*t) * T1
+	 */
+	public static Vector3f cubicHermiteTangent(Vector3f P0, Vector3f T0, Vector3f P1, Vector3f T1, float t) {
+		float t2 = t*t;
+		Vector3f T = new Vector3f();
+		T.addScaleLocal(6*t2-6*t, P0);
+		T.addScaleLocal(3*t2 - 4*t + 1, T0);
+		T.addScaleLocal(-6*t2 + 6*t, P1);
+		T.addScaleLocal(3*t2 - 2*t, T1);
+		return T;
+	}
+	
 }

@@ -44,6 +44,7 @@ public class CurveAverage extends PApplet {
 	private int pickedPoint = 0;
 	private Vector3f[] controlPoints;
 	private Vector3f[] curveA, curveB;
+        public Vector3f[] debugPoints;             ///< Some useful points that we can drag around 
 	boolean recalculateCurve = false;
 	private Vector3f[] samplesA, samplesB;
 
@@ -96,6 +97,13 @@ public class CurveAverage extends PApplet {
 		
 		time1 = System.currentTimeMillis();
 		time2 = System.currentTimeMillis();
+                
+                // Add a debug point
+                debugPoints = new Vector3f[] {
+                    new Vector3f(34,35,56),
+                    new Vector3f(150, 90, 200),
+                    new Vector3f(-70, -30, -70)
+                };
 	}
 
 	public void draw() {
@@ -123,6 +131,31 @@ public class CurveAverage extends PApplet {
 		
 		calculateAndShowCurve();
 		
+                // Draw the debug points
+                		noStroke();
+		//Show control points
+		fill(red);
+		for (Vector3f p : debugPoints) {
+                    pushMatrix();
+                    System.out.println("Point to draw: " + p.toString());
+                    translate(p.x, p.y, p.z);
+                    sphere(0.1f*SCALE);
+                    popMatrix();
+		}
+                
+                boolean visualizeClosest = true;
+                if(visualizeClosest) {
+                    MedialAxisTransform.ClosestInfo info1 = MedialAxisTransform.findClosest(curveA, debugPoints[0]);
+                    System.out.println("First curve: index: " + info1.curveIndex + ", time: " + info1.time + ", point: " + info1.Pt.toString());
+                    if(info1.curveIndex > -1 && info1.curveIndex < curveA.length-1 && info1.time >= 0 && info1.time <= 1)
+                        debugPoints[1] = info1.Pt;
+                    MedialAxisTransform.ClosestInfo info2 = MedialAxisTransform.findClosest(curveB, debugPoints[0]);
+                    System.out.println("Second curve: index: " + info2.curveIndex + ", time: " + info2.time + ", point: " + info2.Pt.toString());
+                    if(info2.curveIndex > -1 && info2.curveIndex < curveB.length-1 && info2.time >= 0 && info2.time <= 1)
+                        debugPoints[2] = info2.Pt;
+                }
+                
+                
 //		List<MedialAxisTransform.TracePoint> ma = new ArrayList <MedialAxisTransform.TracePoint> ();
 //                MedialAxisTransform.trace(curveA, curveB, ma);
 //                exit();
@@ -311,7 +344,7 @@ public class CurveAverage extends PApplet {
 	}
 
 	public void mouseWheel(MouseEvent event) {
-		dz += event.getAmount();
+		dz += 20 * event.getAmount();
 		change = true;
 	}
 
@@ -331,6 +364,8 @@ public class CurveAverage extends PApplet {
 //		System.out.println("Mouse X="+mx+" Y="+my);
 		float dist = Float.MAX_VALUE;
 		pickedPoint = 0;
+                
+                // See if the mouse is close to one of the control points
 		for (int i=0; i<controlPoints.length; ++i) {
 			Vector3f p = controlPoints[i];
 			float x = screenX(p.x, p.y, p.z);
@@ -343,6 +378,21 @@ public class CurveAverage extends PApplet {
 				dist = z;
 				pickedPoint = i + 1;
 			}
+		}
+                
+                // See if the mouse is close to one of the debug points
+                for (int i=0; i<debugPoints.length; ++i) {
+                    Vector3f p = debugPoints[i];
+                    float x = screenX(p.x, p.y, p.z);
+                    float y = screenY(p.x, p.y, p.z);
+                    float z = screenZ(p.x, p.y, p.z);
+//			System.out.println("Point "+(i+1)+" X="+x+" Y="+y+" Z="+z);
+                    if (Math.abs(x-mx) > PICK_TOLERANCE || Math.abs(y-my) > PICK_TOLERANCE)
+                        continue;
+                    if (z < dist) {
+                        dist = z;
+                        pickedPoint = controlPoints.length + i + 1;
+                    }
 		}
 		System.out.println("Picked: "+pickedPoint);
 		
@@ -374,7 +424,10 @@ public class CurveAverage extends PApplet {
 		v = ToK(V(0, (mouseY-pmouseY),0));
 		movement.addLocal(v.x, v.y, v.z);
 		if (pickedPoint >= 1) {
-			controlPoints[pickedPoint-1].addLocal(movement);
+			if(pickedPoint <= controlPoints.length) 
+                            controlPoints[pickedPoint-1].addLocal(movement);
+                        else
+                            debugPoints[pickedPoint-controlPoints.length-1].addLocal(movement);
 		}
 		recalculateCurve = true;
 	}
