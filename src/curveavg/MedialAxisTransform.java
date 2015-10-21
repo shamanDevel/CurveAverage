@@ -7,7 +7,9 @@ package curveavg;
 
 import java.util.List;
 import java.util.Random;
-
+import org.apache.commons.math3.analysis.solvers.NewtonRaphsonSolver;
+import org.apache.commons.math3.exception.TooManyEvaluationsException;
+import org.apache.commons.math3.exception.NumberIsTooLargeException;
 /**
  * Implements the medial axis transformation between two curves.
  * @author Sebastian Weiss
@@ -142,7 +144,7 @@ public class MedialAxisTransform {
          * of the distance between a point and a cubic hermite function. The equation
          * is a quintic, thus no closed form.
          */
-        public static float closestPointOnCubicHermite (Vector3f P0, Vector3f P1, Vector3f T0, Vector3f T1, Vector3f Q) {
+        public static float closestPointOnCubicHermite (Vector3f P0, Vector3f T0, Vector3f P1, Vector3f T1, Vector3f Q) {
             
             // Get the parameters of the quintic function dfdt
             float f = - 2*T0.x*(Q.x - P0.x) - 2*T0.y*(Q.y - P0.y) - 2*T0.z*(Q.z - P0.z);
@@ -151,10 +153,32 @@ public class MedialAxisTransform {
             float c = 2*(2*T0.x + T1.x + 3*P0.x - 3*P1.x)*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x) + 2*(2*T0.y + T1.y + 3*P0.y - 3*P1.y)*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y) + 2*(2*T0.z + T1.z + 3*P0.z - 3*P1.z)*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z) + 2*T0.x*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x) + 2*T0.y*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y) + 2*T0.z*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z) + 2*T0.x*(T0.x + T1.x + 2*P0.x - 2*P1.x) + 2*T0.y*(T0.y + T1.y + 2*P0.y - 2*P1.y) + 2*T0.z*(T0.z + T1.z + 2*P0.z - 2*P1.z);
             float b = - 2*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x)*(T0.x + T1.x + 2*P0.x - 2*P1.x) - 2*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y)*(T0.y + T1.y + 2*P0.y - 2*P1.y) - 2*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z)*(T0.z + T1.z + 2*P0.z - 2*P1.z) - 2*(2*T0.x + T1.x + 3*P0.x - 3*P1.x)*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x) - 2*(2*T0.y + T1.y + 3*P0.y - 3*P1.y)*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y) - 2*(2*T0.z + T1.z + 3*P0.z - 3*P1.z)*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z);
             float a = 2*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x)*(T0.x + T1.x + 2*P0.x - 2*P1.x) + 2*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y)*(T0.y + T1.y + 2*P0.y - 2*P1.y) + 2*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z)*(T0.z + T1.z + 2*P0.z - 2*P1.z);
-
+  
+            // Get the real roots of the quintic
+            SolverResult res = solveQuintic(a,b,c,d,e,f);
             
-            return 0f;
+            // Check which endpoint is closer
+            float dist0 = Q.distance(P0);
+            float dist1 = Q.distance(P1);
+            float minEndpointDist = Math.min(dist0, dist1);
+            // System.out.println("Minimum endpoint dist: " + minEndpointDist);
             
+            // For each nonimaginary root, with real part within [0,1], compute 
+            // the distance to the input point and find the smallest value
+            float bestDist = minEndpointDist;
+            float time = -1f;
+            for(int i = 0; i < 6; i++) {
+                if(Math.abs(res.im[i]) > 1e-3) continue;
+                if(res.re[i] > 1 || res.re[i] < 0) continue;
+                Vector3f Pt = Curve.cubicHermite(P0,T0,P1,T1,res.re[i]);
+                float dist = Q.distance(Pt);
+                if(dist < bestDist) {
+                    time = res.re[i];
+                    bestDist = dist;
+                }
+            }
+            
+            return time;
         }
         
         public static class SolverResult implements Cloneable, java.io.Serializable {
@@ -162,8 +186,47 @@ public class MedialAxisTransform {
             public float[] im;
         }
 
+        /// Uses the NewtonRaphson algorithm iteratively to span the range [0,1]
+        /// and find all the real roots. 
         public static SolverResult solveQuintic (float a, float b, float c, float d, float e, float f) {
-            return new SolverResult ();
+            
+            // Initialize the result
+            SolverResult res = new SolverResult();
+            res.re = new float [6];
+            res.im = new float [6];
+            for(int i = 0; i < 6; i++) res.im[i] = 1.0f;
+            
+            // Create the quintic function and the solver
+            QuinticFunction qf = new QuinticFunction (a,b,c,d,e,f);
+            NewtonRaphsonSolver solver = new NewtonRaphsonSolver();
+
+            // Iteratively call the NewtonRaphson solution until no solution 
+            // exists
+            double minBound = 0.0;
+            double sol;
+            int root_idx = 0;
+            while(true) {
+                
+                // Attempt to get the solution
+                try {
+                    sol = solver.solve(100, qf, minBound, 1.0);
+                }
+                catch (TooManyEvaluationsException|NumberIsTooLargeException exc) {
+                    break;
+                }
+                
+                // Check if the solution is within the bounds (shouldn't be 
+                // necessary but it is...)
+                if(sol < minBound || sol > 1) break;
+                
+                // Save the root and update the minimum bound
+                res.re[root_idx] = (float) sol;
+                res.im[root_idx] = 0.0f;
+                minBound = sol+1e-3;
+                root_idx++;
+            }
+            System.out.println("#cubic roots: " + root_idx);
+            return res;
         }
         
     
@@ -237,7 +300,7 @@ public class MedialAxisTransform {
             dftdt = diff(ft,t);
             c = coeffs(dftdt,t)
          */
-        public static float closestPointOnQuadraticHermite (Vector3f P0, Vector3f P1, Vector3f T0, Vector3f Q) {
+        public static float closestPointOnQuadraticHermite (Vector3f P0, Vector3f T0, Vector3f P1, Vector3f Q) {
  
             // Get the parameters of the cubic function dfdt
             float d = 2*(Q.x - P0.x)*(T0.x + 2*P0.x - 2*P1.x) + 2*(Q.y - P0.y)*(T0.y + 2*P0.y - 2*P1.y) + 2*(Q.z - P0.z)*(T0.z + 2*P0.z - 2*P1.z);
@@ -248,15 +311,23 @@ public class MedialAxisTransform {
             // Compute the roots of the cubic
             SolverResult res = solveCubic(a,b,c,d);
             
+            // Check which endpoint is closer
+            float dist0 = Q.distance(P0);
+            float dist1 = Q.distance(P1);
+            float minEndpointDist = Math.min(dist0, dist1);
+            // System.out.println("Minimum endpoint dist: " + minEndpointDist);
+            
             // For each nonimaginary root, with real part within [0,1], compute 
             // the distance to the input point and find the smallest value
-            float bestDist = 1e6f;
+            float bestDist = minEndpointDist;
             float time = -1f;
             for(int i = 0; i < 3; i++) {
+                // System.out.println("Root " + i + ": " + res.re[i] + ", " + res.im[i]);
                 if(Math.abs(res.im[i]) > 1e-3) continue;
                 if(res.re[i] > 1 || res.re[i] < 0) continue;
-                Vector3f Pt = Curve.quadraticHermite(P0,P1,T0,res.re[i]);
+                Vector3f Pt = Curve.quadraticHermite(P0,T0,P1,res.re[i]);
                 float dist = Q.distance(Pt);
+                // System.out.println("\troot pt: " + Pt.toString() + ", root dist:" + dist);
                 if(dist < bestDist) {
                     time = res.re[i];
                     bestDist = dist;
