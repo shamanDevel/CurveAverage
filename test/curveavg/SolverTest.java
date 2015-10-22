@@ -17,6 +17,8 @@
 package curveavg;
 
 import org.apache.commons.math3.analysis.solvers.NewtonRaphsonSolver;
+import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
+import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 import org.apache.commons.math3.analysis.differentiation.UnivariateDifferentiableFunction;
 import org.junit.Assert;
@@ -25,8 +27,30 @@ import org.junit.Test;
 public final class SolverTest {
 
     @Test
-    public void testQuinticZero() {
+    public void testQuinticZero_NewtonRaphsonFailureCase() {
+    
+        // Solve using NewtonRaphson and count the number of results
+        float c[] = {-38.764412f, 76.10117f, -56.993206f, 28.603401f, -10.2824955f, 1.0f};
+        MedialAxisTransform.SolverResult res = MedialAxisTransform.solveQuintic(c[0], c[1], c[2], c[3], c[4], c[5]);
+        int roots = 0;
+        for(int i = 0; i < res.im.length; i++) {
+            if(Math.abs(res.im[i]) < 1e-3) roots++;
+        }
+        System.out.println("# NR roots: " + roots);
 
+        // Solve using Laguerre
+        
+        double coefficients[] = { 1.0,  -10.2824955, 28.603401,-56.993206, 76.10117, -38.764412};
+        PolynomialFunction f = new PolynomialFunction(coefficients);
+        LaguerreSolver solver = new LaguerreSolver();
+        double result = solver.solve(100, f, 0.8, 1.0);
+        System.out.println("Result: " + result);
+    }
+
+    /*
+    @Test
+    public void testQuinticZero() {
+        
         UnivariateDifferentiableFunction f = new QuinticFunction(1, 0.0, -5/4.0, 0.0, 0.25, 0.0);
         double result;
 
@@ -66,4 +90,5 @@ public final class SolverTest {
         Assert.assertEquals(result, 1.0, solver.getAbsoluteAccuracy());
 
     }
+    */
 }
