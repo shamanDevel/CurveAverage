@@ -9,7 +9,9 @@ import processing.core.*;
 import processing.event.*;
 import java.util.List;
 import java.util.Random;
+import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math3.analysis.solvers.NewtonRaphsonSolver;
+import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
 import org.apache.commons.math3.exception.TooManyEvaluationsException;
 import org.apache.commons.math3.exception.NumberIsTooLargeException;
 import static processing.core.PConstants.QUAD_STRIP;
@@ -180,7 +182,7 @@ public class MedialAxisTransform {
             float a = 2*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x)*(T0.x + T1.x + 2*P0.x - 2*P1.x) + 2*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y)*(T0.y + T1.y + 2*P0.y - 2*P1.y) + 2*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z)*(T0.z + T1.z + 2*P0.z - 2*P1.z);
   
             // Get the real roots of the quintic
-            SolverResult res = solveQuintic(a/f,b/f,c/f,d/f,e/f,1.0f);
+            SolverResult res = solveQuinticLaguerre(a/f,b/f,c/f,d/f,e/f,1.0f);
             
             // Check which endpoint is closer
             float dist0 = Q.distance(P0);
@@ -190,7 +192,7 @@ public class MedialAxisTransform {
             
             // For each nonimaginary root, with real part within [0,1], compute 
             // the distance to the input point and find the smallest value
-            float bestDist = minEndpointDist;
+            float bestDist = 1e6f;
             float time = -1f;
             for(int i = 0; i < 6; i++) {
                 if(Math.abs(res.im[i]) > 1e-3) continue;
@@ -208,10 +210,61 @@ public class MedialAxisTransform {
         }
 
         /**
+         * Uses the Laguerre algorithm iteratively to span the range [0,1]
+         * and find all the real roots. 
+         */
+        public static SolverResult solveQuinticLaguerre (float a, float b, float c, float d, float e, float f) {
+            
+            // Initialize the result
+            System.out.println("quintic params: " + a + ", "+ b + ", "+ c + ", "+ d + ", "+ e + ", "+ f);
+            SolverResult res = new SolverResult();
+            res.re = new float [6];
+            res.im = new float [6];
+            for(int i = 0; i < 6; i++) res.im[i] = 1.0f;
+            
+            // Create the quintic function and the solver
+            double coefficients [] = {f,e,d,c,b,a};
+            PolynomialFunction qf = new PolynomialFunction(coefficients);
+            LaguerreSolver solver = new LaguerreSolver();
+                
+            // Iteratively call the NewtonRaphson solution until no solution 
+            // exists
+            double minBound = 0.0;
+            double sol;
+            int root_idx = 0;
+            final double dt = 0.001;
+            for(double t = -dt; t < 1.0; t += dt) {
+                
+                // Check if there is a sign-crossing between the two times
+                double t2 = t + dt;
+                double f1 = qf.value(t);
+                double f2 = qf.value(t2);
+                if(Math.signum(f1) == Math.signum(f2)) continue;
+
+                // Attempt to get the solution
+                try {
+                    sol = solver.solve(100, qf, t, t2);
+                }
+                catch (TooManyEvaluationsException|NumberIsTooLargeException exc) {
+                    break;
+                }
+
+                // Save the root and update the minimum bound
+                res.re[root_idx] = (float) sol;
+                res.im[root_idx] = 0.0f;
+                minBound = sol+1e-3;
+                root_idx++;
+            }
+            
+            System.out.println("#quintic roots: " + root_idx);
+            return res;
+        }
+        
+        /**
          * Uses the NewtonRaphson algorithm iteratively to span the range [0,1]
          * and find all the real roots. 
          */
-        public static SolverResult solveQuintic (float a, float b, float c, float d, float e, float f) {
+        public static SolverResult solveQuinticNewtonRaphson (float a, float b, float c, float d, float e, float f) {
             
             // Initialize the result
             System.out.println("quintic params: " + a + ", "+ b + ", "+ c + ", "+ d + ", "+ e + ", "+ f);
@@ -373,6 +426,8 @@ public class MedialAxisTransform {
             // cubic segments differently. If the point is found to belong
             // to one of the segments stop.
             int n = curve.length;
+            float minDist = 1e6f;
+            ClosestInfo info = new ClosestInfo();
             for(int i = 0; i < n-1; i++) {
                 
                 // First segment
@@ -386,8 +441,12 @@ public class MedialAxisTransform {
                     if(time > -1e-3) {
 //                        System.out.println("Returning the first segment.");
                         Vector3f Pt = Curve.quadraticHermite(P0, T0, P1, time);
-                        return new ClosestInfo(Pt, Curve.quadraticHermiteTangent(P0, T0, P1, time), 
-                            Q.subtract(Pt).normalize(), time, i);
+                        float dist = Pt.distance(Q);
+                        if(dist < minDist) {
+                            info = new ClosestInfo(Pt, Curve.quadraticHermiteTangent(P0, T0, P1, time), 
+                                Q.subtract(Pt).normalize(), time, i);
+                            minDist = dist;
+                        }
                     }
 		} 
                 
@@ -399,14 +458,17 @@ public class MedialAxisTransform {
                     float time = closestPointOnQuadraticHermite(P0, T0, P1, Q);
                     if(time > -1e-3) {
                         Vector3f Pt = Curve.quadraticHermite(P0, T0, P1, time);
-                        return new ClosestInfo(Pt, Curve.quadraticHermiteTangent(P0, T0, P1, time), 
-                            Q.subtract(Pt).normalize(), time, i);
+                        float dist = Pt.distance(Q);
+                        if(dist < minDist) {
+                            info = new ClosestInfo(Pt, Curve.quadraticHermiteTangent(P0, T0, P1, time), 
+                                Q.subtract(Pt).normalize(), time, i);
+                            minDist = dist;
+                        }
                     }
 		}
                 
                 // Middle segment
                 else {
-                    if(i > 1) continue; 
                     Vector3f P0 = curve[i];
                     Vector3f P1 = curve[i+1];
                     Vector3f T0 = curve[i+1].subtract(curve[i-1]).multLocal(Curve.TANGENT_SCALE);
@@ -414,15 +476,18 @@ public class MedialAxisTransform {
                     float time = closestPointOnCubicHermite(P0, T0, P1, T1, Q);
                     if(time > -1e-3) {
                         Vector3f Pt = Curve.cubicHermite(P0, T0, P1, T1, time);
-                        return new ClosestInfo(Pt, Curve.cubicHermiteTangent(P0, T0, P1, T1, time), 
+                        float dist = Pt.distance(Q);
+                        if(dist < minDist) {
+                            info = new ClosestInfo(Pt, Curve.cubicHermiteTangent(P0, T0, P1, T1, time), 
                                 Q.subtract(Pt).normalize(), time, i);
+                            minDist = dist;
+                        }
                     }
 		}
             }
             
-            System.out.println("WTF");
-            //assert(false);  // shouldn't reach here
-            return new ClosestInfo();
+            assert(minDist < 1e6);
+            return info;
         }
         
 	

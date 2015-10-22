@@ -31,20 +31,42 @@ public final class SolverTest {
     
         // Solve using NewtonRaphson and count the number of results
         float c[] = {-38.764412f, 76.10117f, -56.993206f, 28.603401f, -10.2824955f, 1.0f};
-        MedialAxisTransform.SolverResult res = MedialAxisTransform.solveQuintic(c[0], c[1], c[2], c[3], c[4], c[5]);
-        int roots = 0;
+        MedialAxisTransform.SolverResult res = MedialAxisTransform.solveQuinticNewtonRaphson(c[0], c[1], c[2], c[3], c[4], c[5]);
+        int rootsNR = 0;
         for(int i = 0; i < res.im.length; i++) {
-            if(Math.abs(res.im[i]) < 1e-3) roots++;
+            if(Math.abs(res.im[i]) < 1e-3) rootsNR++;
         }
-        System.out.println("# NR roots: " + roots);
+        System.out.println("# NR roots: " + rootsNR);
+
+        // Solve using NewtonRaphson and count the number of results
+        MedialAxisTransform.SolverResult res2 = MedialAxisTransform.solveQuinticLaguerre(c[0], c[1], c[2], c[3], c[4], c[5]);
+        int rootsL = 0;
+        for(int i = 0; i < res.im.length; i++) {
+            if(Math.abs(res2.im[i]) < 1e-3) rootsL++;
+        }
+        System.out.println("# L roots: " + rootsL);
 
         // Solve using Laguerre
-        
-        double coefficients[] = { 1.0,  -10.2824955, 28.603401,-56.993206, 76.10117, -38.764412};
+        double dt = 0.01;
+        double coefficients[] = new double [6];
+        for(int i = 0; i < 6; i++) coefficients[i] = c[5-i];
         PolynomialFunction f = new PolynomialFunction(coefficients);
         LaguerreSolver solver = new LaguerreSolver();
-        double result = solver.solve(100, f, 0.8, 1.0);
-        System.out.println("Result: " + result);
+        for(double t = 0; t <= (1.0-dt); t += dt) {
+ 
+            // Check if there is a sign-crossing between the two times
+            double t2 = t + dt;
+            double f1 = f.value(t);
+            double f2 = f.value(t2);
+            if(Math.signum(f1) == Math.signum(f2)) continue;
+            
+            // Compute using Laguerre
+            double result = solver.solve(100, f, t, t2);
+            System.out.println("Result: " + result);
+        }
+        
+        
+        
     }
 
     /*
