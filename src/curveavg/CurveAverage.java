@@ -19,6 +19,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.RotationOrder;
  * @author Sebastian Weiss
  */
 public class CurveAverage extends PApplet {
+
 	public static final float SCALE = 50;
 	private static final float PICK_TOLERANCE = 20;
 	public static final float DEG_TO_RAD = PI / 180.0f;
@@ -112,6 +113,57 @@ public class CurveAverage extends PApplet {
                         */
 	}
 
+        /**
+	 * Traces the medial axis of the two curves {@code curveA} and {@code curveB}.
+	 * <br>
+	 * Both curves start and end in the same points ({@code curveA[0]=curveB[0]}
+	 * and {@code curveA[curveA.length-1]=curveB[curveB.length-1]}).
+	 * The curves are interpolated using {@link Curve#interpolate(curveavg.Vector3f[], float) }.
+	 * <br>
+	 * The traced points on the medial axis are represented by instances of the class
+	 * {@link TracePoint}. Place the points in the provided output list.
+	 * @param curveA the control points of the first curve.
+	 * @param curveB the control points of the second curve
+	 * @param output an empty list, place the traced point in here
+	 */
+	public void trace(Vector3f[] curveA, Vector3f[] curveB, List<MedialAxisTransform.TracePoint> output) {
+		
+            // Draw the initial lines
+            Vector3f Q0 = curveA[0];
+            System.out.println("Q0: " + Q0.toString());
+            MedialAxisTransform.ClosestInfo info1a = MedialAxisTransform.findClosest(curveA, Q0);
+            MedialAxisTransform.ClosestInfo info1b = MedialAxisTransform.findClosest(curveB, Q0);
+            assert(info1a.curveIndex == 0);
+            fill(blue);
+            showCylinder(info1a.Pt.addScale(-3*SCALE, info1a.tangent), info1a.Pt.addScale(3*SCALE, info1a.tangent), 2, 8);
+            assert(info1b.curveIndex == 0);
+            fill(green);
+            showCylinder(info1b.Pt.addScale(-3*SCALE, info1b.tangent), info1b.Pt.addScale(3*SCALE, info1b.tangent), 2, 8);
+            
+            // Find the medial axis of the tangent lines
+            MedialAxisTransform.Line line = MedialAxisTransform.medialAxisLine(info1a.Pt, info1a.tangent, 
+                    info1b.Pt, info1b.tangent);
+            fill(red);
+            showCylinder(line.p.addScale(-3*SCALE, line.v), line.p.addScale(3*SCALE, line.v), 2, 8);
+            Vector3f pNext = line.p.addScale(1.0f*SCALE, line.v);
+            pushMatrix();
+            translate(pNext.x, pNext.y, pNext.z);
+            sphere(0.1f*SCALE);
+            popMatrix();
+
+            /*
+            // Start with the common point 
+            Vector3f point = curveA[0];
+            
+            while(true) {
+                
+                // Find which segment of the curves the point coincides to
+                
+            }
+                    */
+                
+	}
+        
 	public void draw() {
 		time1 = System.currentTimeMillis();
 		tpf = (time1 - time2) / 1000f;
@@ -141,7 +193,8 @@ public class CurveAverage extends PApplet {
 		
                 // Draw the debug points
                 		noStroke();
-		//Show control points
+                                
+		//Show debug  points
 		fill(red);
 		for (Vector3f p : debugPoints) {
                     pushMatrix();
@@ -150,14 +203,16 @@ public class CurveAverage extends PApplet {
                     popMatrix();
 		}
                 
-                boolean visualizeClosest = true;
+                // Visualize the closest points and the tangents
+                boolean visualizeClosest = false;
                 if(visualizeClosest) {
                     showClosestPointsAndTangents();
                 }
                 
                 
-//		List<MedialAxisTransform.TracePoint> ma = new ArrayList <MedialAxisTransform.TracePoint> ();
-//                MedialAxisTransform.trace(curveA, curveB, ma);
+                
+		List<MedialAxisTransform.TracePoint> ma = new ArrayList <MedialAxisTransform.TracePoint> ();
+                trace(curveA, curveB, ma);
 //                exit();
                 
 		popMatrix(); // done with 3D drawing. Restore front view for writing text on canvas

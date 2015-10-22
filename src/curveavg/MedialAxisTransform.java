@@ -5,11 +5,15 @@
  */
 package curveavg;
 
+import processing.core.*;
+import processing.event.*;
 import java.util.List;
 import java.util.Random;
 import org.apache.commons.math3.analysis.solvers.NewtonRaphsonSolver;
 import org.apache.commons.math3.exception.TooManyEvaluationsException;
 import org.apache.commons.math3.exception.NumberIsTooLargeException;
+import static processing.core.PConstants.QUAD_STRIP;
+import static processing.core.PConstants.TWO_PI;
 /**
  * Implements the medial axis transformation between two curves.
  * @author Sebastian Weiss
@@ -340,7 +344,7 @@ public class MedialAxisTransform {
                 Vector3f Pt = Curve.quadraticHermite(P0,T0,P1,res.re[i]);
                 float dist = Q.distance(Pt);
                 // System.out.println("\troot pt: " + Pt.toString() + ", root dist:" + dist);
-                if(dist < bestDist) {
+                if(dist <= (bestDist+1e-3)) {
                     time = res.re[i];
                     bestDist = dist;
                 }
@@ -369,6 +373,8 @@ public class MedialAxisTransform {
                     Vector3f P1 = curve[1];
                     Vector3f T0 = curve[2].subtract(curve[0]).multLocal(Curve.TANGENT_SCALE);
                     float time = closestPointOnQuadraticHermite(P0, T0, P1, Q);
+                    System.out.println("Time for first segment: " + time + ", for Q: " + Q.toString());
+                    System.out.println("\tP0: " + P0.toString() +", P1: " + P1.toString());
                     if(time > -1e-3) 
                         return new ClosestInfo(Curve.quadraticHermite(P0, T0, P1, time),
                             Curve.quadraticHermiteTangent(P0, T0, P1, time), time, i);
@@ -401,31 +407,6 @@ public class MedialAxisTransform {
             return new ClosestInfo();
         }
         
-	/**
-	 * Traces the medial axis of the two curves {@code curveA} and {@code curveB}.
-	 * <br>
-	 * Both curves start and end in the same points ({@code curveA[0]=curveB[0]}
-	 * and {@code curveA[curveA.length-1]=curveB[curveB.length-1]}).
-	 * The curves are interpolated using {@link Curve#interpolate(curveavg.Vector3f[], float) }.
-	 * <br>
-	 * The traced points on the medial axis are represented by instances of the class
-	 * {@link TracePoint}. Place the points in the provided output list.
-	 * @param curveA the control points of the first curve.
-	 * @param curveB the control points of the second curve
-	 * @param output an empty list, place the traced point in here
-	 */
-	public static void trace(Vector3f[] curveA, Vector3f[] curveB, List<TracePoint> output) {
-		
-            /*
-            // Start with the common point 
-            Vector3f point = curveA[0];
-            
-            while(true) {
-                
-                // Find which segment of the curves the point coincides to
-                
-            }
-                    */
-                
-	}
+	
+       
 }
