@@ -180,13 +180,13 @@ public class MedialAxisTransform {
             float a = 2*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x)*(T0.x + T1.x + 2*P0.x - 2*P1.x) + 2*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y)*(T0.y + T1.y + 2*P0.y - 2*P1.y) + 2*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z)*(T0.z + T1.z + 2*P0.z - 2*P1.z);
   
             // Get the real roots of the quintic
-            SolverResult res = solveQuintic(a,b,c,d,e,f);
+            SolverResult res = solveQuintic(a/f,b/f,c/f,d/f,e/f,1.0f);
             
             // Check which endpoint is closer
             float dist0 = Q.distance(P0);
             float dist1 = Q.distance(P1);
             float minEndpointDist = Math.min(dist0, dist1);
-            // System.out.println("Minimum endpoint dist: " + minEndpointDist);
+            System.out.println("Minimum endpoint dist: " + minEndpointDist);
             
             // For each nonimaginary root, with real part within [0,1], compute 
             // the distance to the input point and find the smallest value
@@ -197,6 +197,7 @@ public class MedialAxisTransform {
                 if(res.re[i] > 1 || res.re[i] < 0) continue;
                 Vector3f Pt = Curve.cubicHermite(P0,T0,P1,T1,res.re[i]);
                 float dist = Q.distance(Pt);
+                System.out.println("\troot t: " + res.re[i] + ", pt: " + Pt.toString() + ", dist:" + dist);
                 if(dist < bestDist) {
                     time = res.re[i];
                     bestDist = dist;
@@ -213,6 +214,7 @@ public class MedialAxisTransform {
         public static SolverResult solveQuintic (float a, float b, float c, float d, float e, float f) {
             
             // Initialize the result
+            System.out.println("quintic params: " + a + ", "+ b + ", "+ c + ", "+ d + ", "+ e + ", "+ f);
             SolverResult res = new SolverResult();
             res.re = new float [6];
             res.im = new float [6];
@@ -221,7 +223,7 @@ public class MedialAxisTransform {
             // Create the quintic function and the solver
             QuinticFunction qf = new QuinticFunction (a,b,c,d,e,f);
             NewtonRaphsonSolver solver = new NewtonRaphsonSolver();
-
+                
             // Iteratively call the NewtonRaphson solution until no solution 
             // exists
             double minBound = 0.0;
@@ -247,7 +249,8 @@ public class MedialAxisTransform {
                 minBound = sol+1e-3;
                 root_idx++;
             }
-            // System.out.println("#cubic roots: " + root_idx);
+            
+            System.out.println("#quintic roots: " + root_idx);
             return res;
         }
         
@@ -403,6 +406,7 @@ public class MedialAxisTransform {
                 
                 // Middle segment
                 else {
+                    if(i > 1) continue; 
                     Vector3f P0 = curve[i];
                     Vector3f P1 = curve[i+1];
                     Vector3f T0 = curve[i+1].subtract(curve[i-1]).multLocal(Curve.TANGENT_SCALE);
