@@ -303,6 +303,7 @@ public class CurveAverage extends PApplet {
             // Handle the first curve
 //            System.out.println("Input point: " + debugPoints[0].toString());
 
+            /*
             MedialAxisTransform.ClosestInfo info1 = MedialAxisTransform.findClosest(curveA, debugPoints[0]);
 //            System.out.println("First curve: index: " + info1.curveIndex + ", time: " + info1.time + ", point: " + info1.Pt.toString());
             if(info1.curveIndex > -1 && info1.curveIndex < curveA.length-1 && info1.time >= 0 && info1.time <= 1) {
@@ -324,7 +325,7 @@ public class CurveAverage extends PApplet {
 //                System.out.println("px: " + px.toString() + ", py: " + py.toString());
 
             }
-
+*/
             // Handle the second curve
             MedialAxisTransform.ClosestInfo info2 = MedialAxisTransform.findClosest(curveB, debugPoints[0]);
 //            System.out.println("First curve: index: " + info2.curveIndex + ", time: " + info2.time + ", point: " + info2.Pt.toString());
@@ -595,10 +596,10 @@ public class CurveAverage extends PApplet {
 		if (pickedPoint >= 1) {
                     if(pickedPoint <= controlPoints.length) {
                         controlPoints[pickedPoint-1].addLocal(movement);
-                        System.out.println("pickedPoint: " + (pickedPoint - 1) + ", loc: " + controlPoints[pickedPoint-1].toString());
+//                        System.out.println("pickedPoint: " + (pickedPoint - 1) + ", loc: " + controlPoints[pickedPoint-1].toString());
                     }
                     else {
-                        System.out.println("dbg loc: " + debugPoints[0].toString());
+//                        System.out.println("dbg loc: " + debugPoints[0].toString());
                         debugPoints[pickedPoint-controlPoints.length-1].addLocal(movement);
                     }
 		}

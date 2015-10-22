@@ -379,6 +379,8 @@ public class MedialAxisTransform {
          */
         public static float closestPointOnQuadraticHermite (Vector3f P0, Vector3f T0, Vector3f P1, Vector3f Q) {
  
+            System.out.println("closestPoint call: P0: " + P0.toString() +",T0: " + T0.toString() +", P1: " + P1.toString() +", Q: " + Q.toString());
+
             // Get the parameters of the cubic function dfdt
             float d = 2*(Q.x - P0.x)*(T0.x + 2*P0.x - 2*P1.x) + 2*(Q.y - P0.y)*(T0.y + 2*P0.y - 2*P1.y) + 2*(Q.z - P0.z)*(T0.z + 2*P0.z - 2*P1.z);
             float c = (float) (2*Math.pow(T0.x + 2*P0.x - 2*P1.x,2) + 2*Math.pow(T0.y + 2*P0.y - 2*P1.y,2) + 2*Math.pow(T0.z + 2*P0.z - 2*P1.z,2) - 2*(Q.x - P0.x)*(2*T0.x + 2*P0.x - 2*P1.x) - 2*(Q.y - P0.y)*(2*T0.y + 2*P0.y - 2*P1.y) - 2*(Q.z - P0.z)*(2*T0.z + 2*P0.z - 2*P1.z));
@@ -399,18 +401,19 @@ public class MedialAxisTransform {
             float bestDist = 1e6f;
             float time = -1f;
             for(int i = 0; i < 3; i++) {
-                // System.out.println("Root " + i + ": " + res.re[i] + ", " + res.im[i]);
+                System.out.println("Root " + i + ": " + res.re[i] + ", " + res.im[i]);
                 if(Math.abs(res.im[i]) > 1e-3) continue;
                 if(res.re[i] > 1 || res.re[i] < 0) continue;
                 Vector3f Pt = Curve.quadraticHermite(P0,T0,P1,res.re[i]);
                 float dist = Q.distance(Pt);
-                // System.out.println("\troot pt: " + Pt.toString() + ", root dist:" + dist);
+                System.out.println("\troot time: " + res.re[i] + ", pt: " + Pt.toString() + ", dist:" + dist);
                 if(dist <= (bestDist+1e-3)) {
                     time = res.re[i];
                     bestDist = dist;
                 }
             }
             
+            System.out.println("Final time: " + time);
             return time;
         }
         
@@ -422,6 +425,7 @@ public class MedialAxisTransform {
          */
         public static ClosestInfo findClosest (Vector3f[] curve, Vector3f Q) { 
             
+            System.out.println("\nfindClosest for " + Q.toString() + " -----------------");
             // Go through the curve segment by segment and treat quadratic and
             // cubic segments differently. If the point is found to belong
             // to one of the segments stop.
@@ -451,7 +455,7 @@ public class MedialAxisTransform {
 		} 
                 
                 // Last segment (had to switch p0 and p1 around)
-                else if (i==n-2) {
+                else if (false && i==n-2) {
                     Vector3f P0 = curve[n-2];
                     Vector3f P1 = curve[n-1];
                     Vector3f T0 = curve[n-3].subtract(curve[n-2]).multLocal(Curve.TANGENT_SCALE);
@@ -469,6 +473,7 @@ public class MedialAxisTransform {
                 
                 // Middle segment
                 else {
+                    if(true) continue;
                     Vector3f P0 = curve[i];
                     Vector3f P1 = curve[i+1];
                     Vector3f T0 = curve[i+1].subtract(curve[i-1]).multLocal(Curve.TANGENT_SCALE);
@@ -486,7 +491,7 @@ public class MedialAxisTransform {
 		}
             }
             
-            assert(minDist < 1e6);
+//            assert(minDist < 1e6);
             return info;
         }
         
