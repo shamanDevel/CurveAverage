@@ -168,19 +168,26 @@ public class MedialAxisTransform {
         
         /**
          * Perform Newton's algorithm to find the zero of the derivative wrt time
-         * of the distance between a point and a cubic hermite function. The equation
+         * of the perpendicularity constraint between a point and a cubic hermite function. The equation
          * is a quintic, thus no closed form.
+         * The function is f(P(t), Q) = dot((Q-P(t)), P'(t));
          */
-        public static float closestPointOnCubicHermite (Vector3f P0, Vector3f T0, Vector3f P1, Vector3f T1, Vector3f Q) {
+        public static float perpPointOnCubicHermite (Vector3f P0, Vector3f T0, Vector3f P1, Vector3f T1, Vector3f Q) {
             
             // Get the parameters of the quintic function dfdt
-            float f = - 2*T0.x*(Q.x - P0.x) - 2*T0.y*(Q.y - P0.y) - 2*T0.z*(Q.z - P0.z);
-            float e = 2*(Q.x - P0.x)*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x) + 2*(Q.y - P0.y)*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y) + 2*(Q.z - P0.z)*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z) + 2*T0.x*T0.x + 2*T0.y*T0.y + 2*T0.z*T0.z;
-            float d = - 2*T0.x*(2*T0.x + T1.x + 3*P0.x - 3*P1.x) - 2*T0.y*(2*T0.y + T1.y + 3*P0.y - 3*P1.y) - 2*T0.z*(2*T0.z + T1.z + 3*P0.z - 3*P1.z) - 2*T0.x*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x) - 2*T0.y*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y) - 2*T0.z*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z) - 2*(Q.x - P0.x)*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x) - 2*(Q.y - P0.y)*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y) - 2*(Q.z - P0.z)*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z);
-            float c = 2*(2*T0.x + T1.x + 3*P0.x - 3*P1.x)*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x) + 2*(2*T0.y + T1.y + 3*P0.y - 3*P1.y)*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y) + 2*(2*T0.z + T1.z + 3*P0.z - 3*P1.z)*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z) + 2*T0.x*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x) + 2*T0.y*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y) + 2*T0.z*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z) + 2*T0.x*(T0.x + T1.x + 2*P0.x - 2*P1.x) + 2*T0.y*(T0.y + T1.y + 2*P0.y - 2*P1.y) + 2*T0.z*(T0.z + T1.z + 2*P0.z - 2*P1.z);
-            float b = - 2*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x)*(T0.x + T1.x + 2*P0.x - 2*P1.x) - 2*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y)*(T0.y + T1.y + 2*P0.y - 2*P1.y) - 2*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z)*(T0.z + T1.z + 2*P0.z - 2*P1.z) - 2*(2*T0.x + T1.x + 3*P0.x - 3*P1.x)*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x) - 2*(2*T0.y + T1.y + 3*P0.y - 3*P1.y)*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y) - 2*(2*T0.z + T1.z + 3*P0.z - 3*P1.z)*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z);
-            float a = 2*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x)*(T0.x + T1.x + 2*P0.x - 2*P1.x) + 2*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y)*(T0.y + T1.y + 2*P0.y - 2*P1.y) + 2*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z)*(T0.z + T1.z + 2*P0.z - 2*P1.z);
-  
+//            float f = - 2*T0.x*(Q.x - P0.x) - 2*T0.y*(Q.y - P0.y) - 2*T0.z*(Q.z - P0.z);
+//            float e = 2*(Q.x - P0.x)*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x) + 2*(Q.y - P0.y)*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y) + 2*(Q.z - P0.z)*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z) + 2*T0.x*T0.x + 2*T0.y*T0.y + 2*T0.z*T0.z;
+//            float d = - 2*T0.x*(2*T0.x + T1.x + 3*P0.x - 3*P1.x) - 2*T0.y*(2*T0.y + T1.y + 3*P0.y - 3*P1.y) - 2*T0.z*(2*T0.z + T1.z + 3*P0.z - 3*P1.z) - 2*T0.x*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x) - 2*T0.y*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y) - 2*T0.z*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z) - 2*(Q.x - P0.x)*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x) - 2*(Q.y - P0.y)*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y) - 2*(Q.z - P0.z)*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z);
+//            float c = 2*(2*T0.x + T1.x + 3*P0.x - 3*P1.x)*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x) + 2*(2*T0.y + T1.y + 3*P0.y - 3*P1.y)*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y) + 2*(2*T0.z + T1.z + 3*P0.z - 3*P1.z)*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z) + 2*T0.x*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x) + 2*T0.y*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y) + 2*T0.z*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z) + 2*T0.x*(T0.x + T1.x + 2*P0.x - 2*P1.x) + 2*T0.y*(T0.y + T1.y + 2*P0.y - 2*P1.y) + 2*T0.z*(T0.z + T1.z + 2*P0.z - 2*P1.z);
+//            float b = - 2*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x)*(T0.x + T1.x + 2*P0.x - 2*P1.x) - 2*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y)*(T0.y + T1.y + 2*P0.y - 2*P1.y) - 2*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z)*(T0.z + T1.z + 2*P0.z - 2*P1.z) - 2*(2*T0.x + T1.x + 3*P0.x - 3*P1.x)*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x) - 2*(2*T0.y + T1.y + 3*P0.y - 3*P1.y)*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y) - 2*(2*T0.z + T1.z + 3*P0.z - 3*P1.z)*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z);
+//            float a = 2*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x)*(T0.x + T1.x + 2*P0.x - 2*P1.x) + 2*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y)*(T0.y + T1.y + 2*P0.y - 2*P1.y) + 2*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z)*(T0.z + T1.z + 2*P0.z - 2*P1.z);
+            float f = T0.x*(Q.x - P0.x) + T0.y*(Q.y - P0.y) + T0.z*(Q.z - P0.z);
+            float e = - (Q.x - P0.x)*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x) - (Q.y - P0.y)*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y) - (Q.z - P0.z)*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z) - T0.x*T0.x - T0.y*T0.y - T0.z*T0.z;
+            float d = T0.x*(2*T0.x + T1.x + 3*P0.x - 3*P1.x) + T0.y*(2*T0.y + T1.y + 3*P0.y - 3*P1.y) + T0.z*(2*T0.z + T1.z + 3*P0.z - 3*P1.z) + T0.x*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x) + T0.y*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y) + T0.z*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z) + (Q.x - P0.x)*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x) + (Q.y - P0.y)*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y) + (Q.z - P0.z)*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z);
+            float c = - (2*T0.x + T1.x + 3*P0.x - 3*P1.x)*(4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x) - (2*T0.y + T1.y + 3*P0.y - 3*P1.y)*(4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y) - (2*T0.z + T1.z + 3*P0.z - 3*P1.z)*(4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z) - T0.x*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x) - T0.y*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y) - T0.z*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z) - T0.x*(T0.x + T1.x + 2*P0.x - 2*P1.x) - T0.y*(T0.y + T1.y + 2*P0.y - 2*P1.y) - T0.z*(T0.z + T1.z + 2*P0.z - 2*P1.z);
+            float b = (4*T0.x + 2*T1.x + 6*P0.x - 6*P1.x)*(T0.x + T1.x + 2*P0.x - 2*P1.x) + (4*T0.y + 2*T1.y + 6*P0.y - 6*P1.y)*(T0.y + T1.y + 2*P0.y - 2*P1.y) + (4*T0.z + 2*T1.z + 6*P0.z - 6*P1.z)*(T0.z + T1.z + 2*P0.z - 2*P1.z) + (2*T0.x + T1.x + 3*P0.x - 3*P1.x)*(3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x) + (2*T0.y + T1.y + 3*P0.y - 3*P1.y)*(3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y) + (2*T0.z + T1.z + 3*P0.z - 3*P1.z)*(3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z);
+            float a = - (3*T0.x + 3*T1.x + 6*P0.x - 6*P1.x)*(T0.x + T1.x + 2*P0.x - 2*P1.x) - (3*T0.y + 3*T1.y + 6*P0.y - 6*P1.y)*(T0.y + T1.y + 2*P0.y - 2*P1.y) - (3*T0.z + 3*T1.z + 6*P0.z - 6*P1.z)*(T0.z + T1.z + 2*P0.z - 2*P1.z);
+
             // Get the real roots of the quintic
             SolverResult res = solveQuinticLaguerre(a/f,b/f,c/f,d/f,e/f,1.0f);
             
@@ -366,26 +373,23 @@ public class MedialAxisTransform {
         }
         
         /**
-         * Find the zero of the derivative wrt time of the distance between a 
-         * point and a quadratic hermite function in cubic closed-form.
-         * Use Matlab to find the coefficients of the distance function.
-         * Matlab: clear all;
-            syms x0 y0 z0 x1 y1 z1 t0x t0y t0z t qx qy qz real;
-            p0 = [x0; y0; z0]; p1 = [x1;y1;z1]; t0 = [t0x; t0y; t0z]; q = [qx;qy;qz];
-            pt = (t^2 - 2*t + 1) * p0 + (-t^2 + 2*t) * p1 + (t^2 - t) * t0;
-            ft = (q-pt)'*(q-pt);
-            dftdt = diff(ft,t);
-            c = coeffs(dftdt,t)
+         * Find the zero of the derivative wrt time of the perpendicularity
+         * constraint between a point and a quadratic hermite function in cubic closed-form.
+         * * The function is f(P(t), Q) = dot((Q-P(t)), P'(t));
          */
-        public static float closestPointOnQuadraticHermite (Vector3f P0, Vector3f T0, Vector3f P1, Vector3f Q) {
+        public static float perpPointOnQuadraticHermite (Vector3f P0, Vector3f T0, Vector3f P1, Vector3f Q) {
  
-            System.out.println("closestPoint call: P0: " + P0.toString() +",T0: " + T0.toString() +", P1: " + P1.toString() +", Q: " + Q.toString());
+            System.out.println("perpPoint call: P0: " + P0.toString() +",T0: " + T0.toString() +", P1: " + P1.toString() +", Q: " + Q.toString());
 
             // Get the parameters of the cubic function dfdt
-            float d = 2*(Q.x - P0.x)*(T0.x + 2*P0.x - 2*P1.x) + 2*(Q.y - P0.y)*(T0.y + 2*P0.y - 2*P1.y) + 2*(Q.z - P0.z)*(T0.z + 2*P0.z - 2*P1.z);
-            float c = (float) (2*Math.pow(T0.x + 2*P0.x - 2*P1.x,2) + 2*Math.pow(T0.y + 2*P0.y - 2*P1.y,2) + 2*Math.pow(T0.z + 2*P0.z - 2*P1.z,2) - 2*(Q.x - P0.x)*(2*T0.x + 2*P0.x - 2*P1.x) - 2*(Q.y - P0.y)*(2*T0.y + 2*P0.y - 2*P1.y) - 2*(Q.z - P0.z)*(2*T0.z + 2*P0.z - 2*P1.z));
-            float b = (float) (- 2*(T0.x + P0.x - P1.x)*(T0.x + 2*P0.x - 2*P1.x) - 2*(T0.y + P0.y - P1.y)*(T0.y + 2*P0.y - 2*P1.y) - 2*(T0.z + P0.z - P1.z)*(T0.z + 2*P0.z - 2*P1.z) - 2*(T0.x + 2*P0.x - 2*P1.x)*(2*T0.x + 2*P0.x - 2*P1.x) - 2*(T0.y + 2*P0.y - 2*P1.y)*(2*T0.y + 2*P0.y - 2*P1.y) - 2*(T0.z + 2*P0.z - 2*P1.z)*(2*T0.z + 2*P0.z - 2*P1.z));
-            float a = 2*(T0.x + P0.x - P1.x)*(2*T0.x + 2*P0.x - 2*P1.x) + 2*(T0.y + P0.y - P1.y)*(2*T0.y + 2*P0.y - 2*P1.y) + 2*(T0.z + P0.z - P1.z)*(2*T0.z + 2*P0.z - 2*P1.z);
+//            float d = 2*(Q.x - P0.x)*(T0.x + 2*P0.x - 2*P1.x) + 2*(Q.y - P0.y)*(T0.y + 2*P0.y - 2*P1.y) + 2*(Q.z - P0.z)*(T0.z + 2*P0.z - 2*P1.z);
+//            float c = (float) (2*Math.pow(T0.x + 2*P0.x - 2*P1.x,2) + 2*Math.pow(T0.y + 2*P0.y - 2*P1.y,2) + 2*Math.pow(T0.z + 2*P0.z - 2*P1.z,2) - 2*(Q.x - P0.x)*(2*T0.x + 2*P0.x - 2*P1.x) - 2*(Q.y - P0.y)*(2*T0.y + 2*P0.y - 2*P1.y) - 2*(Q.z - P0.z)*(2*T0.z + 2*P0.z - 2*P1.z));
+//            float b = (float) (- 2*(T0.x + P0.x - P1.x)*(T0.x + 2*P0.x - 2*P1.x) - 2*(T0.y + P0.y - P1.y)*(T0.y + 2*P0.y - 2*P1.y) - 2*(T0.z + P0.z - P1.z)*(T0.z + 2*P0.z - 2*P1.z) - 2*(T0.x + 2*P0.x - 2*P1.x)*(2*T0.x + 2*P0.x - 2*P1.x) - 2*(T0.y + 2*P0.y - 2*P1.y)*(2*T0.y + 2*P0.y - 2*P1.y) - 2*(T0.z + 2*P0.z - 2*P1.z)*(2*T0.z + 2*P0.z - 2*P1.z));
+//            float a = 2*(T0.x + P0.x - P1.x)*(2*T0.x + 2*P0.x - 2*P1.x) + 2*(T0.y + P0.y - P1.y)*(2*T0.y + 2*P0.y - 2*P1.y) + 2*(T0.z + P0.z - P1.z)*(2*T0.z + 2*P0.z - 2*P1.z);
+            float d = - (Q.x - P0.x)*(T0.x + 2*P0.x - 2*P1.x) - (Q.y - P0.y)*(T0.y + 2*P0.y - 2*P1.y) - (Q.z - P0.z)*(T0.z + 2*P0.z - 2*P1.z);
+            float c = (float) ((Q.x - P0.x)*(2*T0.x + 2*P0.x - 2*P1.x) - Math.pow(T0.y + 2*P0.y - 2*P1.y,2) - Math.pow(T0.z + 2*P0.z - 2*P1.z,2) - Math.pow(T0.x + 2*P0.x - 2*P1.x,2) + (Q.y - P0.y)*(2*T0.y + 2*P0.y - 2*P1.y) + (Q.z - P0.z)*(2*T0.z + 2*P0.z - 2*P1.z));
+            float b = (float) ((T0.x + P0.x - P1.x)*(T0.x + 2*P0.x - 2*P1.x) + (T0.y + P0.y - P1.y)*(T0.y + 2*P0.y - 2*P1.y) + (T0.z + P0.z - P1.z)*(T0.z + 2*P0.z - 2*P1.z) + (T0.x + 2*P0.x - 2*P1.x)*(2*T0.x + 2*P0.x - 2*P1.x) + (T0.y + 2*P0.y - 2*P1.y)*(2*T0.y + 2*P0.y - 2*P1.y) + (T0.z + 2*P0.z - 2*P1.z)*(2*T0.z + 2*P0.z - 2*P1.z));
+            float a = - (T0.x + P0.x - P1.x)*(2*T0.x + 2*P0.x - 2*P1.x) - (T0.y + P0.y - P1.y)*(2*T0.y + 2*P0.y - 2*P1.y) - (T0.z + P0.z - P1.z)*(2*T0.z + 2*P0.z - 2*P1.z);
 
             // Compute the roots of the cubic
             SolverResult res = solveCubic(a,b,c,d);
@@ -439,7 +443,7 @@ public class MedialAxisTransform {
                     Vector3f P0 = curve[0];
                     Vector3f P1 = curve[1];
                     Vector3f T0 = curve[2].subtract(curve[0]).multLocal(Curve.TANGENT_SCALE);
-                    float time = closestPointOnQuadraticHermite(P0, T0, P1, Q);
+                    float time = perpPointOnQuadraticHermite(P0, T0, P1, Q);
                     // System.out.println("Time for first segment: " + time + ", for Q: " + Q.toString());
                     // System.out.println("\tP0: " + P0.toString() +", P1: " + P1.toString());
                     if(time > -1e-3) {
@@ -455,11 +459,11 @@ public class MedialAxisTransform {
 		} 
                 
                 // Last segment (had to switch p0 and p1 around)
-                else if (false && i==n-2) {
+                else if (i==n-2) {
                     Vector3f P0 = curve[n-2];
                     Vector3f P1 = curve[n-1];
                     Vector3f T0 = curve[n-3].subtract(curve[n-2]).multLocal(Curve.TANGENT_SCALE);
-                    float time = closestPointOnQuadraticHermite(P0, T0, P1, Q);
+                    float time = perpPointOnQuadraticHermite(P0, T0, P1, Q);
                     if(time > -1e-3) {
                         Vector3f Pt = Curve.quadraticHermite(P0, T0, P1, time);
                         float dist = Pt.distance(Q);
@@ -473,12 +477,12 @@ public class MedialAxisTransform {
                 
                 // Middle segment
                 else {
-                    if(true) continue;
+//                    if(true) continue;
                     Vector3f P0 = curve[i];
                     Vector3f P1 = curve[i+1];
                     Vector3f T0 = curve[i+1].subtract(curve[i-1]).multLocal(Curve.TANGENT_SCALE);
                     Vector3f T1 = curve[i+2].subtract(curve[i]).multLocal(Curve.TANGENT_SCALE);
-                    float time = closestPointOnCubicHermite(P0, T0, P1, T1, Q);
+                    float time = perpPointOnCubicHermite(P0, T0, P1, T1, Q);
                     if(time > -1e-3) {
                         Vector3f Pt = Curve.cubicHermite(P0, T0, P1, T1, time);
                         float dist = Pt.distance(Q);
