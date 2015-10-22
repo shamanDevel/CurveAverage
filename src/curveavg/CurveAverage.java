@@ -82,11 +82,10 @@ public class CurveAverage extends PApplet {
 			new Vector3f(140, 90, 160),
 			new Vector3f(100, 37, 100),
 			new Vector3f(50, 39, 40),
-                        new Vector3f(17.307629f, 0.0f, -47.95851f)
-//			new Vector3f(0, 15, -20)
+//                        new Vector3f(17.307629f, 0.0f, -47.95851f)
+			new Vector3f(0, 15, -20)
 		};
-                for(int i = 0; i < controlPoints.length; i++)
-                    controlPoints[i].y = 0.0f;
+//                for(int i = 0; i < controlPoints.length; i++) controlPoints[i].y = 0.0f;
                 
 		curveA = new Vector3f[controlPoints.length / 2 + 1];
 		curveB = new Vector3f[controlPoints.length / 2 + 1];
