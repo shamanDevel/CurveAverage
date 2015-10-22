@@ -379,7 +379,7 @@ public class MedialAxisTransform {
          */
         public static float perpPointOnQuadraticHermite (Vector3f P0, Vector3f T0, Vector3f P1, Vector3f Q) {
  
-            System.out.println("perpPoint call: P0: " + P0.toString() +",T0: " + T0.toString() +", P1: " + P1.toString() +", Q: " + Q.toString());
+//            System.out.println("perpPoint call: P0: " + P0.toString() +",T0: " + T0.toString() +", P1: " + P1.toString() +", Q: " + Q.toString());
 
             // Get the parameters of the cubic function dfdt
 //            float d = 2*(Q.x - P0.x)*(T0.x + 2*P0.x - 2*P1.x) + 2*(Q.y - P0.y)*(T0.y + 2*P0.y - 2*P1.y) + 2*(Q.z - P0.z)*(T0.z + 2*P0.z - 2*P1.z);
@@ -405,19 +405,19 @@ public class MedialAxisTransform {
             float bestDist = 1e6f;
             float time = -1f;
             for(int i = 0; i < 3; i++) {
-                System.out.println("Root " + i + ": " + res.re[i] + ", " + res.im[i]);
+//                System.out.println("Root " + i + ": " + res.re[i] + ", " + res.im[i]);
                 if(Math.abs(res.im[i]) > 1e-3) continue;
                 if(res.re[i] > 1 || res.re[i] < 0) continue;
                 Vector3f Pt = Curve.quadraticHermite(P0,T0,P1,res.re[i]);
                 float dist = Q.distance(Pt);
-                System.out.println("\troot time: " + res.re[i] + ", pt: " + Pt.toString() + ", dist:" + dist);
+//                System.out.println("\troot time: " + res.re[i] + ", pt: " + Pt.toString() + ", dist:" + dist);
                 if(dist <= (bestDist+1e-3)) {
                     time = res.re[i];
                     bestDist = dist;
                 }
             }
             
-            System.out.println("Final time: " + time);
+//            System.out.println("Final time: " + time);
             return time;
         }
         
@@ -429,7 +429,7 @@ public class MedialAxisTransform {
          */
         public static ClosestInfo findClosest (Vector3f[] curve, Vector3f Q) { 
             
-            System.out.println("\nfindClosest for " + Q.toString() + " -----------------");
+//            System.out.println("\nfindClosest for " + Q.toString() + " -----------------");
             // Go through the curve segment by segment and treat quadratic and
             // cubic segments differently. If the point is found to belong
             // to one of the segments stop.
