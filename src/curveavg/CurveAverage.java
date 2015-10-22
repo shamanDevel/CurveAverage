@@ -106,7 +106,8 @@ public class CurveAverage extends PApplet {
                 
                 // Add a debug point
                 debugPoints = new Vector3f[] {
-                    new Vector3f(34,35,56)};
+                    //new Vector3f(34,35,56)};
+                    new Vector3f(-49.94571f, 0.0f, -21.360573f)};
                 /*
                     new Vector3f(150, 90, 200),
                     new Vector3f(-70, -30, -70)
@@ -130,28 +131,35 @@ public class CurveAverage extends PApplet {
 	public void trace(Vector3f[] curveA, Vector3f[] curveB, List<MedialAxisTransform.TracePoint> output) {
 		
             // Draw the initial lines
-            Vector3f Q0 = curveA[0];
-            System.out.println("Q0: " + Q0.toString());
+            Vector3f Q0 = (Curve.interpolate(curveA, 0.01f).add(Curve.interpolate(curveB, 0.1f))).mult(0.5f);
+            System.out.println("\n\nQ0: " + Q0.toString());
             MedialAxisTransform.ClosestInfo info1a = MedialAxisTransform.findClosest(curveA, Q0);
             MedialAxisTransform.ClosestInfo info1b = MedialAxisTransform.findClosest(curveB, Q0);
+            System.out.println("Tangent A: " + info1a.tangent.toString() + ", tangent B: " + info1b.tangent.toString());
             assert(info1a.curveIndex == 0);
             fill(blue);
-//            showCylinder(info1a.Pt.addScale(-3*SCALE, info1a.tangent), info1a.Pt.addScale(3*SCALE, info1a.tangent), 2, 8);
+            showCylinder(info1a.Pt.addScale(-3*SCALE, info1a.tangent), info1a.Pt.addScale(3*SCALE, info1a.tangent), 2, 8);
             assert(info1b.curveIndex == 0);
             fill(green);
-//            showCylinder(info1b.Pt.addScale(-3*SCALE, info1b.tangent), info1b.Pt.addScale(3*SCALE, info1b.tangent), 2, 8);
-            
+            showCylinder(info1b.Pt.addScale(-3*SCALE, info1b.tangent), info1b.Pt.addScale(3*SCALE, info1b.tangent), 2, 8);
+
             MedialAxisTransform.ClosestInfo infoA = info1a;
             MedialAxisTransform.ClosestInfo infoB = info1b;
-            for(int idx = 0; idx < 1; idx++) {
+            Vector3f Q1 = Q0;
+            
+            final float stepSize = 10.0f;
+            for(int idx = 0; idx < 4; idx++) {
 
+                System.out.println("Iteration " + idx + "---------------------");
                 // Find the medial axis of the tangent lines
                 MedialAxisTransform.Line line = MedialAxisTransform.medialAxisLine(infoA.Pt, infoA.tangent, 
                         infoB.Pt, infoB.tangent);
+                System.out.println("Line p: " + line.p.toString() + ", line v: " + line.v.toString());
                 fill(red);
-                showCylinder(line.p.addScale(-3*SCALE, line.v), line.p.addScale(3*SCALE, line.v), 2, 8);
-                Vector3f Q1 = line.p.addScale(1f*SCALE, line.v);
-     
+                showCylinder(Q1.addScale(-3*SCALE, line.v), Q1.addScale(3*SCALE, line.v), 2, 8);
+                Q1 = Q1.addScale(stepSize, line.v);
+                drawPoint(Q1, red);
+
                 // Find the closest point to the first estimate 
                 System.out.println("Q1 initial: " + Q1.toString());
 
@@ -163,32 +171,34 @@ public class CurveAverage extends PApplet {
                     // Find the projections and the distances
                     infoA = MedialAxisTransform.findClosest(curveA, Q1);
                     infoB = MedialAxisTransform.findClosest(curveB, Q1);
+                    assert(infoA.found);
+                    assert(infoB.found);
                     float distA = Q1.distance(infoA.Pt);
                     float distB = Q1.distance(infoB.Pt);
-                    float err = Math.abs(distA-distB);
-                    System.out.println("distA: " + distA + ", distB: " + distB + ", |diff|: " + err);
-                    if(err < 1e-2) break;
+                    float err = distA-distB;
+                    System.out.println("distA: " + distA + ", distB: " + distB + ", |diff|: " + Math.abs(err));
+                    if(Math.abs(err) < 1e-3) {
+                        System.out.println("Converged...");
+                        break;
+                    }
 
                     // Move the point in the average direction
-                    Vector3f dir = new Vector3f(0f,0f,0f);
-                    if(Math.abs(distA) > Math.abs(distB))
-                        dir = infoA.dir.mult(0.5f * err);
-                    else
-                        dir = infoB.dir.mult(0.5f * err);
-                    Q1 = Q1.addScaleLocal(-4.0f, dir);
-                    if(counter++ > 55) break;
+                    System.out.println("\tdirA: " + infoA.dir.toString() + ", dirB: " + infoB.dir.toString());
+                    Vector3f dir = (infoA.dir.subtract(infoB.dir)).normalize();
+                    Q1 = Q1.addScaleLocal(-0.5f*err, dir);
+                    if(counter++ > 200) break;
                 }
                 System.out.println("Q1 later: " + Q1.toString());
-                drawPoint(Q1, red);
+                drawPoint(Q1, orange);
 
                 infoA = MedialAxisTransform.findClosest(curveA, Q1);
                 infoB = MedialAxisTransform.findClosest(curveB, Q1);
                 assert(infoA.curveIndex == 0);
                 drawPoint(infoA.Pt, blue);
-                showCylinder(infoA.Pt.addScale(-1*SCALE, infoA.dir), infoA.Pt.addScale(1*SCALE, infoA.dir), 2, 8);
+//                showCylinder(infoA.Pt.addScale(-1*SCALE, infoA.dir), infoA.Pt.addScale(1*SCALE, infoA.dir), 2, 8);
                 assert(infoB.curveIndex == 0);
                 drawPoint(infoB.Pt, green);
-                showCylinder(infoB.Pt.addScale(-1*SCALE, infoB.dir), infoB.Pt.addScale(1*SCALE, infoB.dir), 2, 8);
+//                showCylinder(infoB.Pt.addScale(-1*SCALE, infoB.dir), infoB.Pt.addScale(1*SCALE, infoB.dir), 2, 8);
             }
             /*
             // Start with the common point 
@@ -249,9 +259,10 @@ public class CurveAverage extends PApplet {
                     sphere(0.1f*SCALE);
                     popMatrix();
 		}
+                debugPoints[0].y = 0.0f;
                 
                 // Visualize the closest points and the tangents
-                boolean visualizeClosest = false;
+                boolean visualizeClosest = true;
                 if(visualizeClosest) {
                     showClosestPointsAndTangents();
                 }
@@ -259,7 +270,7 @@ public class CurveAverage extends PApplet {
                 
                 
 		List<MedialAxisTransform.TracePoint> ma = new ArrayList <MedialAxisTransform.TracePoint> ();
-                trace(curveA, curveB, ma);
+//                trace(curveA, curveB, ma);
 //                exit();
                 
 		popMatrix(); // done with 3D drawing. Restore front view for writing text on canvas
@@ -283,8 +294,10 @@ public class CurveAverage extends PApplet {
 	
         private void showClosestPointsAndTangents () {
             // Handle the first curve
+            System.out.println("Input point: " + debugPoints[0].toString());
+
             MedialAxisTransform.ClosestInfo info1 = MedialAxisTransform.findClosest(curveA, debugPoints[0]);
-            System.out.println("First curve: index: " + info1.curveIndex + ", time: " + info1.time + ", point: " + info1.Pt.toString());
+//            System.out.println("First curve: index: " + info1.curveIndex + ", time: " + info1.time + ", point: " + info1.Pt.toString());
             if(info1.curveIndex > -1 && info1.curveIndex < curveA.length-1 && info1.time >= 0 && info1.time <= 1) {
 
                 // Visualize the closest point
@@ -307,7 +320,7 @@ public class CurveAverage extends PApplet {
 
             // Handle the second curve
             MedialAxisTransform.ClosestInfo info2 = MedialAxisTransform.findClosest(curveB, debugPoints[0]);
-            System.out.println("First curve: index: " + info2.curveIndex + ", time: " + info2.time + ", point: " + info2.Pt.toString());
+//            System.out.println("First curve: index: " + info2.curveIndex + ", time: " + info2.time + ", point: " + info2.Pt.toString());
             if(info2.curveIndex > -1 && info2.curveIndex < curveA.length-1 && info2.time >= 0 && info2.time <= 1) {
 
                 // Visualize the closest point

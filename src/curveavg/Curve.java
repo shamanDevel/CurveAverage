@@ -163,11 +163,15 @@ public class Curve {
          * P'(t) = (2*t - 2) * P0 + (-2*t + 2) * P1 + (2*t - 1) * T0
 	 */
 	public static Vector3f quadraticHermiteTangent(Vector3f P0, Vector3f T0, Vector3f P1, float t) {
-		Vector3f T = new Vector3f();
-		T.addScaleLocal(2*t - 2, P0);
-		T.addScaleLocal(-2*t + 2, P1);
-		T.addScaleLocal(2*t-1, T0);
-		return T.normalize();
+            Vector3f T = new Vector3f();
+            T.addScaleLocal(2*t - 2, P0);
+            T.addScaleLocal(-2*t + 2, P1);
+            T.addScaleLocal(2*t-1, T0);
+            Vector3f Pt1 = quadraticHermite(P0, T0, P1, t);
+            Vector3f Pt2 = quadraticHermite(P0, T0, P1, t+1e-5f);
+            Vector3f T2 = (Pt2.subtract(Pt1)).normalize();
+//            System.out.println("P0: " + P0.toString() + ", P1: " + P1.toString() + ", T0: " + T0.toString() + ", time: " + t + ", T: " + T.toString() + ", T2: " + T2.toString());
+            return T.normalize();
 	}
         
         /**

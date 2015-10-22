@@ -31,13 +31,14 @@ public class MedialAxisTransform {
         }
 	
         public static class ClosestInfo implements Cloneable, java.io.Serializable {
+            boolean found;
             Vector3f Pt;
             float time;
             Vector3f tangent, dir;
             int curveIndex;      /// Index of the control point
-            ClosestInfo () { Pt = tangent = dir = new Vector3f(-1f,-1f,-1f); time = -1; curveIndex = -1; }
+            ClosestInfo () { Pt = tangent = dir = new Vector3f(-1f,-1f,-1f); time = -1; curveIndex = -1; found = false;}
             ClosestInfo (Vector3f Pt_, Vector3f t_, Vector3f d_, float time_, int c) {
-                Pt = Pt_; tangent = t_; time = time_; curveIndex = c; dir = d_;
+                Pt = Pt_; tangent = t_; time = time_; curveIndex = c; dir = d_; found = true;
             }
         }
           
@@ -87,13 +88,13 @@ public class MedialAxisTransform {
          * Solve for the intersection parameters s and u for a system
          * of equations such that x1+s*vx1=x2+u*vx2 and y1+s*vy1=y2+u*vy2.
          */
-        public static Vector2f solveIntersection (float x1, float vx1, float
+        public static Vector3f solveIntersection (float x1, float vx1, float
                 x2, float vx2, float y1, float vy1, float y2, float vy2) {
             float denom = (vx1*vy2 - vx2*vy1);
-            assert(Math.abs(denom) > 1e-5);
+            if(Math.abs(denom) < 1e-5) return new Vector3f(0.0f, 0.0f, -1.0f);
             float s = -(vy2*x1 - vy2*x2 - vx2*y1 + vx2*y2)/denom;
             float u = -(vy1*x1 - vy1*x2 - vx1*y1 + vx1*y2)/denom;
-            return new Vector2f(s, u);
+            return new Vector3f(s, u, 1);
         }
 
         /**
@@ -121,8 +122,9 @@ public class MedialAxisTransform {
                 
                 // Find the closest point on each line to each other
                 // http://2000clicks.com/mathhelp/GeometryPointsAndLines3D.aspx
-                Vector2f res = solveIntersection((g * u.x + p1.x), v1.x, p2.x, v2.x, 
+                Vector3f res = solveIntersection((g * u.x + p1.x), v1.x, p2.x, v2.x, 
                         (g * u.y + p1.y), v1.y, p2.y, v2.y);
+                assert(res.z > 0);
                 Vector3f p1c = p1.addScale(res.x, v1);
                 Vector3f p2c = p2.addScale(res.y, v2);
                 maLine.p = (p1c.add(p2c)).mult(0.5f);
@@ -141,14 +143,14 @@ public class MedialAxisTransform {
             }
             
             // TODO Check for denominator.
-            Vector2f res1 = solveIntersection(p1.x, v1.x, p2.x, v2.x, p1.y, v1.y, p2.y, v2.y);
-            Vector2f res2 = solveIntersection(p1.x, v1.x, p2.x, v2.x, p1.z, v1.z, p2.z, v2.z);
-            Vector2f res3 = solveIntersection(p1.y, v1.y, p2.y, v2.y, p1.z, v1.z, p2.z, v2.z);
+            Vector3f res1 = solveIntersection(p1.x, v1.x, p2.x, v2.x, p1.y, v1.y, p2.y, v2.y);
+            Vector3f res2 = solveIntersection(p1.x, v1.x, p2.x, v2.x, p1.z, v1.z, p2.z, v2.z);
+            Vector3f res3 = solveIntersection(p1.y, v1.y, p2.y, v2.y, p1.z, v1.z, p2.z, v2.z);
 
-            Vector2f res = new Vector2f(0f,0f);
-            if(!Float.isNaN(res1.x) && !Float.isNaN(res1.y)) res = res1;
-            else if(!Float.isNaN(res2.x) && !Float.isNaN(res2.y)) res = res2;
-            else if(!Float.isNaN(res3.x) && !Float.isNaN(res3.y)) res = res3;
+            Vector3f res = new Vector3f(0f,0f,0f);
+            if(res1.z > 0) res = res1;
+            else if(res2.z > 0) res = res2;
+            else if(res3.z > 0) res = res3;
             else assert(false);
 
             // Perform the operation for intersecting lines
@@ -379,6 +381,7 @@ public class MedialAxisTransform {
                     // System.out.println("Time for first segment: " + time + ", for Q: " + Q.toString());
                     // System.out.println("\tP0: " + P0.toString() +", P1: " + P1.toString());
                     if(time > -1e-3) {
+//                        System.out.println("Returning the first segment.");
                         Vector3f Pt = Curve.quadraticHermite(P0, T0, P1, time);
                         return new ClosestInfo(Pt, Curve.quadraticHermiteTangent(P0, T0, P1, time), 
                             Q.subtract(Pt).normalize(), time, i);
@@ -412,7 +415,9 @@ public class MedialAxisTransform {
                     }
 		}
             }
-            assert(false);  // shouldn't reach here
+            
+            System.out.println("WTF");
+            //assert(false);  // shouldn't reach here
             return new ClosestInfo();
         }
         
