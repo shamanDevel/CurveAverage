@@ -33,11 +33,11 @@ public class MedialAxisTransform {
         public static class ClosestInfo implements Cloneable, java.io.Serializable {
             Vector3f Pt;
             float time;
-            Vector3f tangent;
+            Vector3f tangent, dir;
             int curveIndex;      /// Index of the control point
-            ClosestInfo () { Pt = tangent = new Vector3f(-1f,-1f,-1f); time = -1; curveIndex = -1; }
-            ClosestInfo (Vector3f Pt_, Vector3f t_, float time_, int c) {
-                Pt = Pt_; tangent = t_; time = time_; curveIndex = c;
+            ClosestInfo () { Pt = tangent = dir = new Vector3f(-1f,-1f,-1f); time = -1; curveIndex = -1; }
+            ClosestInfo (Vector3f Pt_, Vector3f t_, Vector3f d_, float time_, int c) {
+                Pt = Pt_; tangent = t_; time = time_; curveIndex = c; dir = d_;
             }
         }
           
@@ -144,12 +144,15 @@ public class MedialAxisTransform {
             Vector2f res1 = solveIntersection(p1.x, v1.x, p2.x, v2.x, p1.y, v1.y, p2.y, v2.y);
             Vector2f res2 = solveIntersection(p1.x, v1.x, p2.x, v2.x, p1.z, v1.z, p2.z, v2.z);
             Vector2f res3 = solveIntersection(p1.y, v1.y, p2.y, v2.y, p1.z, v1.z, p2.z, v2.z);
-            System.out.println("res1: " + res1.toString());
-            System.out.println("res2: " + res2.toString());
-            System.out.println("res3: " + res3.toString());
-            
+
+            Vector2f res = new Vector2f(0f,0f);
+            if(!Float.isNaN(res1.x) && !Float.isNaN(res1.y)) res = res1;
+            else if(!Float.isNaN(res2.x) && !Float.isNaN(res2.y)) res = res2;
+            else if(!Float.isNaN(res3.x) && !Float.isNaN(res3.y)) res = res3;
+            else assert(false);
+
             // Perform the operation for intersecting lines
-            maLine.p = new Vector3f(p1.addScale(res1.x, v1));
+            maLine.p = new Vector3f(p1.addScale(res.x, v1));
             maLine.v = new Vector3f((v1.add(v2)).normalize());
             
             if(debug) {
@@ -373,11 +376,13 @@ public class MedialAxisTransform {
                     Vector3f P1 = curve[1];
                     Vector3f T0 = curve[2].subtract(curve[0]).multLocal(Curve.TANGENT_SCALE);
                     float time = closestPointOnQuadraticHermite(P0, T0, P1, Q);
-                    System.out.println("Time for first segment: " + time + ", for Q: " + Q.toString());
-                    System.out.println("\tP0: " + P0.toString() +", P1: " + P1.toString());
-                    if(time > -1e-3) 
-                        return new ClosestInfo(Curve.quadraticHermite(P0, T0, P1, time),
-                            Curve.quadraticHermiteTangent(P0, T0, P1, time), time, i);
+                    // System.out.println("Time for first segment: " + time + ", for Q: " + Q.toString());
+                    // System.out.println("\tP0: " + P0.toString() +", P1: " + P1.toString());
+                    if(time > -1e-3) {
+                        Vector3f Pt = Curve.quadraticHermite(P0, T0, P1, time);
+                        return new ClosestInfo(Pt, Curve.quadraticHermiteTangent(P0, T0, P1, time), 
+                            Q.subtract(Pt).normalize(), time, i);
+                    }
 		} 
                 
                 // Last segment (had to switch p0 and p1 around)
@@ -386,9 +391,11 @@ public class MedialAxisTransform {
                     Vector3f P1 = curve[n-1];
                     Vector3f T0 = curve[n-3].subtract(curve[n-2]).multLocal(Curve.TANGENT_SCALE);
                     float time = closestPointOnQuadraticHermite(P0, T0, P1, Q);
-                    if(time > -1e-3) 
-                        return new ClosestInfo(Curve.quadraticHermite(P0, T0, P1, time),
-                            Curve.quadraticHermiteTangent(P0, T0, P1, time), time, i);
+                    if(time > -1e-3) {
+                        Vector3f Pt = Curve.quadraticHermite(P0, T0, P1, time);
+                        return new ClosestInfo(Pt, Curve.quadraticHermiteTangent(P0, T0, P1, time), 
+                            Q.subtract(Pt).normalize(), time, i);
+                    }
 		}
                 
                 // Middle segment
@@ -398,9 +405,11 @@ public class MedialAxisTransform {
                     Vector3f T0 = curve[i+1].subtract(curve[i-1]).multLocal(Curve.TANGENT_SCALE);
                     Vector3f T1 = curve[i+2].subtract(curve[i]).multLocal(Curve.TANGENT_SCALE);
                     float time = closestPointOnCubicHermite(P0, T0, P1, T1, Q);
-                    if(time > -1e-3) 
-                        return new ClosestInfo(Curve.cubicHermite(P0, T0, P1, T1, time),
-                            Curve.cubicHermiteTangent(P0, T0, P1, T1, time), time, i);
+                    if(time > -1e-3) {
+                        Vector3f Pt = Curve.cubicHermite(P0, T0, P1, T1, time);
+                        return new ClosestInfo(Pt, Curve.cubicHermiteTangent(P0, T0, P1, T1, time), 
+                                Q.subtract(Pt).normalize(), time, i);
+                    }
 		}
             }
             assert(false);  // shouldn't reach here
