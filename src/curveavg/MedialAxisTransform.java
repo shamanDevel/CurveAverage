@@ -374,11 +374,11 @@ public class MedialAxisTransform {
                             Curve.quadraticHermiteTangent(P0, T0, P1, time), time, i);
 		} 
                 
-                // Last segment
+                // Last segment (had to switch p0 and p1 around)
                 else if (i==n-2) {
-                    Vector3f P0 = curve[n-1];
-                    Vector3f P1 = curve[n-2];
-                    Vector3f T0 = curve[n-3].subtract(curve[n-1]).multLocal(Curve.TANGENT_SCALE);
+                    Vector3f P0 = curve[n-2];
+                    Vector3f P1 = curve[n-1];
+                    Vector3f T0 = curve[n-3].subtract(curve[n-2]).multLocal(Curve.TANGENT_SCALE);
                     float time = closestPointOnQuadraticHermite(P0, T0, P1, Q);
                     if(time > -1e-3) 
                         return new ClosestInfo(Curve.quadraticHermite(P0, T0, P1, time),

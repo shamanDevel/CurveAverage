@@ -9,8 +9,10 @@ import processing.core.*;
 import processing.event.*;
 import java.util.ArrayList;
 import java.util.List;
-
+import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import static curveavg.Pv3D.*;
+import org.apache.commons.math3.geometry.euclidean.threed.RotationOrder;
 
 /**
  *
@@ -81,6 +83,8 @@ public class CurveAverage extends PApplet {
 			new Vector3f(50, 39, 40),
 			new Vector3f(0, 15, -20)
 		};
+
+                
 		curveA = new Vector3f[controlPoints.length / 2 + 1];
 		curveB = new Vector3f[controlPoints.length / 2 + 1];
 		for (int i=0; i<curveA.length; ++i) {
@@ -148,37 +152,7 @@ public class CurveAverage extends PApplet {
                 
                 boolean visualizeClosest = true;
                 if(visualizeClosest) {
-                    
-                    // Handle the first curve
-                    MedialAxisTransform.ClosestInfo info1 = MedialAxisTransform.findClosest(curveA, debugPoints[0]);
-                    System.out.println("First curve: index: " + info1.curveIndex + ", time: " + info1.time + ", point: " + info1.Pt.toString());
-                    if(info1.curveIndex > -1 && info1.curveIndex < curveA.length-1 && info1.time >= 0 && info1.time <= 1) {
-                        
-                        // Visualize the closest point
-                        pushMatrix();
-                        translate(info1.Pt.x, info1.Pt.y, info1.Pt.z);
-                        sphere(0.1f*SCALE);
-                        popMatrix();
-                        
-                        // Visualize the tangent
-                                            rotateY(PI / 2);
-
-                     }
-                    /*
-                    noStroke();
-                    fill(metal);
-                    showArrow(d, d / 10);
-                    fill(red);
-                    pushMatrix();
-                    rotateY(PI / 2);
-                    showArrow(d, d / 10);
-                    popMatrix();
-
-                    MedialAxisTransform.ClosestInfo info2 = MedialAxisTransform.findClosest(curveB, debugPoints[0]);
-                    System.out.println("Second curve: index: " + info2.curveIndex + ", time: " + info2.time + ", point: " + info2.Pt.toString());
-                    if(info2.curveIndex > -1 && info2.curveIndex < curveB.length-1 && info2.time >= 0 && info2.time <= 1)
-                        debugPoints[2] = info2.Pt;
-                            */
+                    showClosestPointsAndTangents();
                 }
                 
                 
@@ -205,6 +179,53 @@ public class CurveAverage extends PApplet {
 		change = false; // to avoid capturing frames when nothing happens (change is set uppn action)
 	}
 	
+        private void showClosestPointsAndTangents () {
+            // Handle the first curve
+            MedialAxisTransform.ClosestInfo info1 = MedialAxisTransform.findClosest(curveA, debugPoints[0]);
+            System.out.println("First curve: index: " + info1.curveIndex + ", time: " + info1.time + ", point: " + info1.Pt.toString());
+            if(info1.curveIndex > -1 && info1.curveIndex < curveA.length-1 && info1.time >= 0 && info1.time <= 1) {
+
+                // Visualize the closest point
+                pushMatrix();
+                translate(info1.Pt.x, info1.Pt.y, info1.Pt.z);
+                sphere(0.1f*SCALE);
+                popMatrix();
+
+                // Visualize the tangent
+                Vector3f ux = (debugPoints[0].subtract(info1.Pt)).normalize();
+                Vector3f uy = info1.tangent;
+                Vector3f px = info1.Pt.addScale(0.4f * SCALE, ux);
+                Vector3f py = info1.Pt.addScale(0.7f * SCALE, uy);
+                fill(blue);
+                showCylinder(info1.Pt, px, CURVE_CYLINDER_RADIUS/1.5f, CURVE_CYLINDER_SAMPLES);
+                showCylinder(info1.Pt, py, CURVE_CYLINDER_RADIUS/2f, CURVE_CYLINDER_SAMPLES);
+                System.out.println("px: " + px.toString() + ", py: " + py.toString());
+
+            }
+
+            // Handle the second curve
+            MedialAxisTransform.ClosestInfo info2 = MedialAxisTransform.findClosest(curveB, debugPoints[0]);
+            System.out.println("First curve: index: " + info2.curveIndex + ", time: " + info2.time + ", point: " + info2.Pt.toString());
+            if(info2.curveIndex > -1 && info2.curveIndex < curveA.length-1 && info2.time >= 0 && info2.time <= 1) {
+
+                // Visualize the closest point
+                pushMatrix();
+                translate(info2.Pt.x, info2.Pt.y, info2.Pt.z);
+                sphere(0.1f*SCALE);
+                popMatrix();
+
+                // Visualize the tangent
+                Vector3f ux = (debugPoints[0].subtract(info2.Pt)).normalize();
+                Vector3f uy = info2.tangent;
+                Vector3f px = info2.Pt.addScale(0.4f * SCALE, ux);
+                Vector3f py = info2.Pt.addScale(0.7f * SCALE, uy);
+                fill(green);
+                showCylinder(info2.Pt, px, CURVE_CYLINDER_RADIUS/1.5f, CURVE_CYLINDER_SAMPLES);
+                showCylinder(info2.Pt, py, CURVE_CYLINDER_RADIUS/2f, CURVE_CYLINDER_SAMPLES);
+                System.out.println("px: " + px.toString() + ", py: " + py.toString());
+
+             }
+        }
 	private void calculateAndShowCurve() {
 		noStroke();
 		//Show control points

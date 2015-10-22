@@ -167,7 +167,7 @@ public class Curve {
 		T.addScaleLocal(2*t - 2, P0);
 		T.addScaleLocal(-2*t + 2, P1);
 		T.addScaleLocal(2*t-1, T0);
-		return T;
+		return T.normalize();
 	}
         
         /**
@@ -182,7 +182,7 @@ public class Curve {
 		T.addScaleLocal(3*t2 - 4*t + 1, T0);
 		T.addScaleLocal(-6*t2 + 6*t, P1);
 		T.addScaleLocal(3*t2 - 2*t, T1);
-		return T;
+		return T.normalize();
 	}
 	
 }
