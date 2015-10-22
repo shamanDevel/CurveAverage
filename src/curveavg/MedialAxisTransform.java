@@ -188,7 +188,7 @@ public class MedialAxisTransform {
             float dist0 = Q.distance(P0);
             float dist1 = Q.distance(P1);
             float minEndpointDist = Math.min(dist0, dist1);
-            System.out.println("Minimum endpoint dist: " + minEndpointDist);
+//            System.out.println("Minimum endpoint dist: " + minEndpointDist);
             
             // For each nonimaginary root, with real part within [0,1], compute 
             // the distance to the input point and find the smallest value
@@ -199,7 +199,7 @@ public class MedialAxisTransform {
                 if(res.re[i] > 1 || res.re[i] < 0) continue;
                 Vector3f Pt = Curve.cubicHermite(P0,T0,P1,T1,res.re[i]);
                 float dist = Q.distance(Pt);
-                System.out.println("\troot t: " + res.re[i] + ", pt: " + Pt.toString() + ", dist:" + dist);
+//                System.out.println("\troot t: " + res.re[i] + ", pt: " + Pt.toString() + ", dist:" + dist);
                 if(dist < bestDist) {
                     time = res.re[i];
                     bestDist = dist;
@@ -216,7 +216,7 @@ public class MedialAxisTransform {
         public static SolverResult solveQuinticLaguerre (float a, float b, float c, float d, float e, float f) {
             
             // Initialize the result
-            System.out.println("quintic params: " + a + ", "+ b + ", "+ c + ", "+ d + ", "+ e + ", "+ f);
+//            System.out.println("quintic params: " + a + ", "+ b + ", "+ c + ", "+ d + ", "+ e + ", "+ f);
             SolverResult res = new SolverResult();
             res.re = new float [6];
             res.im = new float [6];
@@ -256,7 +256,7 @@ public class MedialAxisTransform {
                 root_idx++;
             }
             
-            System.out.println("#quintic roots: " + root_idx);
+//            System.out.println("#quintic roots: " + root_idx);
             return res;
         }
         
@@ -396,7 +396,7 @@ public class MedialAxisTransform {
             
             // For each nonimaginary root, with real part within [0,1], compute 
             // the distance to the input point and find the smallest value
-            float bestDist = minEndpointDist;
+            float bestDist = 1e6f;
             float time = -1f;
             for(int i = 0; i < 3; i++) {
                 // System.out.println("Root " + i + ": " + res.re[i] + ", " + res.im[i]);

@@ -82,7 +82,8 @@ public class CurveAverage extends PApplet {
 			new Vector3f(140, 90, 160),
 			new Vector3f(100, 37, 100),
 			new Vector3f(50, 39, 40),
-			new Vector3f(0, 15, -20)
+                        new Vector3f(17.307629f, 0.0f, -47.95851f)
+//			new Vector3f(0, 15, -20)
 		};
                 for(int i = 0; i < controlPoints.length; i++)
                     controlPoints[i].y = 0.0f;
@@ -107,7 +108,7 @@ public class CurveAverage extends PApplet {
                 // Add a debug point
                 debugPoints = new Vector3f[] {
                     //new Vector3f(34,35,56)};
-                    new Vector3f(-49.94571f, 0.0f, -21.360573f)};
+                    new Vector3f(-47.615837f, 0.0f, -38.66822f)};
                 /*
                     new Vector3f(150, 90, 200),
                     new Vector3f(-70, -30, -70)
@@ -131,24 +132,28 @@ public class CurveAverage extends PApplet {
 	public void trace(Vector3f[] curveA, Vector3f[] curveB, List<MedialAxisTransform.TracePoint> output) {
 		
             // Draw the initial lines
+            /*
             Vector3f Q0 = (Curve.interpolate(curveA, 0.01f).add(Curve.interpolate(curveB, 0.1f))).mult(0.5f);
+            drawPoint(Q0, cyan);
+
             System.out.println("\n\nQ0: " + Q0.toString());
             MedialAxisTransform.ClosestInfo info1a = MedialAxisTransform.findClosest(curveA, Q0);
             MedialAxisTransform.ClosestInfo info1b = MedialAxisTransform.findClosest(curveB, Q0);
             System.out.println("Tangent A: " + info1a.tangent.toString() + ", tangent B: " + info1b.tangent.toString());
-            assert(info1a.curveIndex == 0);
-            fill(blue);
-            showCylinder(info1a.Pt.addScale(-3*SCALE, info1a.tangent), info1a.Pt.addScale(3*SCALE, info1a.tangent), 2, 8);
-            assert(info1b.curveIndex == 0);
-            fill(green);
-            showCylinder(info1b.Pt.addScale(-3*SCALE, info1b.tangent), info1b.Pt.addScale(3*SCALE, info1b.tangent), 2, 8);
+            System.out.println("info1a index: " + info1a.curveIndex + ", info1b index: " + info1b.curveIndex);
+                        drawPoint(info1a.Pt, orange);
 
-            MedialAxisTransform.ClosestInfo infoA = info1a;
-            MedialAxisTransform.ClosestInfo infoB = info1b;
-            Vector3f Q1 = Q0;
-            
+//            fill(blue);
+//            showCylinder(info1a.Pt.addScale(-3*SCALE, info1a.tangent), info1a.Pt.addScale(3*SCALE, info1a.tangent), 2, 8);
+//            fill(green);
+//            showCylinder(info1b.Pt.addScale(-3*SCALE, info1b.tangent), info1b.Pt.addScale(3*SCALE, info1b.tangent), 2, 8);
+*/
+            MedialAxisTransform.ClosestInfo infoA = MedialAxisTransform.findClosest(curveA, Curve.interpolate(curveA, 0.15f));
+            MedialAxisTransform.ClosestInfo infoB = MedialAxisTransform.findClosest(curveB, Curve.interpolate(curveB, 0.15f));
+            Vector3f Q1 = curveA[0];
+
             final float stepSize = 10.0f;
-            for(int idx = 0; idx < 4; idx++) {
+            for(int idx = 0; idx < 1; idx++) {
 
                 System.out.println("Iteration " + idx + "---------------------");
                 // Find the medial axis of the tangent lines
@@ -171,34 +176,36 @@ public class CurveAverage extends PApplet {
                     // Find the projections and the distances
                     infoA = MedialAxisTransform.findClosest(curveA, Q1);
                     infoB = MedialAxisTransform.findClosest(curveB, Q1);
+                    if(counter == 0) {
+                        drawPoint(infoB.Pt, magenta);
+                    }
                     assert(infoA.found);
                     assert(infoB.found);
                     float distA = Q1.distance(infoA.Pt);
                     float distB = Q1.distance(infoB.Pt);
                     float err = distA-distB;
-                    System.out.println("distA: " + distA + ", distB: " + distB + ", |diff|: " + Math.abs(err));
+                    System.out.println("distA: " + distA + ", distB: " + distB + ", |diff|: " + Math.abs(err) + ", dirA: " + infoA.dir.toString() + ", dirB: " + infoB.dir.toString());
                     if(Math.abs(err) < 1e-3) {
-                        System.out.println("Converged...");
+//                        System.out.println("Converged...");
                         break;
                     }
 
                     // Move the point in the average direction
-                    System.out.println("\tdirA: " + infoA.dir.toString() + ", dirB: " + infoB.dir.toString());
+//                    System.out.println("
                     Vector3f dir = (infoA.dir.subtract(infoB.dir)).normalize();
                     Q1 = Q1.addScaleLocal(-0.5f*err, dir);
-                    if(counter++ > 200) break;
+                    if(counter++ > 10) break;
                 }
                 System.out.println("Q1 later: " + Q1.toString());
                 drawPoint(Q1, orange);
 
                 infoA = MedialAxisTransform.findClosest(curveA, Q1);
                 infoB = MedialAxisTransform.findClosest(curveB, Q1);
-                assert(infoA.curveIndex == 0);
                 drawPoint(infoA.Pt, blue);
 //                showCylinder(infoA.Pt.addScale(-1*SCALE, infoA.dir), infoA.Pt.addScale(1*SCALE, infoA.dir), 2, 8);
-                assert(infoB.curveIndex == 0);
                 drawPoint(infoB.Pt, green);
 //                showCylinder(infoB.Pt.addScale(-1*SCALE, infoB.dir), infoB.Pt.addScale(1*SCALE, infoB.dir), 2, 8);
+                
             }
             /*
             // Start with the common point 
@@ -294,7 +301,7 @@ public class CurveAverage extends PApplet {
 	
         private void showClosestPointsAndTangents () {
             // Handle the first curve
-            System.out.println("Input point: " + debugPoints[0].toString());
+//            System.out.println("Input point: " + debugPoints[0].toString());
 
             MedialAxisTransform.ClosestInfo info1 = MedialAxisTransform.findClosest(curveA, debugPoints[0]);
 //            System.out.println("First curve: index: " + info1.curveIndex + ", time: " + info1.time + ", point: " + info1.Pt.toString());
@@ -314,7 +321,7 @@ public class CurveAverage extends PApplet {
                 fill(blue);
                 showCylinder(info1.Pt, px, CURVE_CYLINDER_RADIUS/1.5f, CURVE_CYLINDER_SAMPLES);
                 showCylinder(info1.Pt, py, CURVE_CYLINDER_RADIUS/2f, CURVE_CYLINDER_SAMPLES);
-                System.out.println("px: " + px.toString() + ", py: " + py.toString());
+//                System.out.println("px: " + px.toString() + ", py: " + py.toString());
 
             }
 
@@ -337,7 +344,7 @@ public class CurveAverage extends PApplet {
                 fill(green);
                 showCylinder(info2.Pt, px, CURVE_CYLINDER_RADIUS/1.5f, CURVE_CYLINDER_SAMPLES);
                 showCylinder(info2.Pt, py, CURVE_CYLINDER_RADIUS/2f, CURVE_CYLINDER_SAMPLES);
-                System.out.println("px: " + px.toString() + ", py: " + py.toString());
+//                System.out.println("px: " + px.toString() + ", py: " + py.toString());
 
              }
         }
@@ -586,10 +593,14 @@ public class CurveAverage extends PApplet {
 		v = ToK(V(0, (mouseY-pmouseY),0));
 		movement.addLocal(v.x, v.y, v.z);
 		if (pickedPoint >= 1) {
-			if(pickedPoint <= controlPoints.length) 
-                            controlPoints[pickedPoint-1].addLocal(movement);
-                        else
-                            debugPoints[pickedPoint-controlPoints.length-1].addLocal(movement);
+                    if(pickedPoint <= controlPoints.length) {
+                        controlPoints[pickedPoint-1].addLocal(movement);
+                        System.out.println("pickedPoint: " + (pickedPoint - 1) + ", loc: " + controlPoints[pickedPoint-1].toString());
+                    }
+                    else {
+                        System.out.println("dbg loc: " + debugPoints[0].toString());
+                        debugPoints[pickedPoint-controlPoints.length-1].addLocal(movement);
+                    }
 		}
 		recalculateCurve = true;
 	}
