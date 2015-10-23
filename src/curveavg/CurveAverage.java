@@ -287,7 +287,7 @@ public class CurveAverage extends PApplet {
 //                showClosestPointsAndTangents();
        
 		List<MedialAxisTransform.TracePoint> ma = new ArrayList <MedialAxisTransform.TracePoint> ();
-                trace(curveA, curveB, ma);
+//                trace(curveA, curveB, ma);
 //                exit();
                 
 		popMatrix(); // done with 3D drawing. Restore front view for writing text on canvas

@@ -86,13 +86,12 @@ public class Curve {
 			samples1[i] = interpolate(controlPoints, i/step1);
 		}
 		//Second step: calculate cumulative distances between samples and sum them
-		float[] distances = new float[samples1.length-1];
+		float[] distances = new float[samples1.length];
 		float arcLength = 0;
-		for (int i=0; i<distances.length; ++i) {
-			distances[i] = samples1[i].distance(samples1[i+1]);
-			if (i>0) {
-				distances[i] += distances[i-1];
-			}
+		distances[0] = 0;
+		for (int i=1; i<distances.length; ++i) {
+			distances[i] = samples1[i].distance(samples1[i-1]);
+			distances[i] += distances[i-1];
 		}
 		arcLength = distances[distances.length-1];
 		//Third step: sample final curve equispaced
@@ -104,8 +103,8 @@ public class Curve {
 		for (int i=1; i<numSamples-1; ++i) {
 			float d = i*step2;
 			//search j so that distances[j]<=d<distances[j+1]
-			while (true) {
-				if (distances[j]<=d && distances[j+1]>d) {
+			while (j<distances.length-1) {
+				if (distances[j]<=d && distances[j+1]>=d) {
 					break;
 				}
 				j++;
