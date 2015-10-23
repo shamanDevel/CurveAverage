@@ -43,7 +43,8 @@ public class TestMedialAxisTransform {
                + ", \np2= " + p2.toString() + ", v2= " + v2.toString() + ", \nq= " + q.toString());
             
             // Compute the closest point
-            float time = MedialAxisTransform.closestPointOnCubicHermite(p1, v1, p2, v2, q);
+            //float time = MedialAxisTransform.closestPointOnCubicHermite(p1, v1, p2, v2, q);
+			float time = MedialAxisTransform.perpPointOnCubicHermite(p1, v1, p2, v2, q);
             if(time < 0 || time > 1) {
                 if(dbg) System.out.println("Bad time, trying again");
                 continue;
@@ -90,7 +91,8 @@ public class TestMedialAxisTransform {
                + ", \np2= " + p2.toString() + ", q= " + q.toString());
             
             // Compute the closest point
-            float time = MedialAxisTransform.closestPointOnQuadraticHermite(p1, v1, p2, q);
+            //float time = MedialAxisTransform.closestPointOnQuadraticHermite(p1, v1, p2, q);
+			float time = MedialAxisTransform.perpPointOnQuadraticHermite(p1, v1, p2, q);
             if(time < 0 || time > 1) {
                 if(dbg) System.out.println("Bad time, trying again");
                 continue;
