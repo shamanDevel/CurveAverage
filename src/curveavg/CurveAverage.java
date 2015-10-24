@@ -76,19 +76,18 @@ public class CurveAverage extends AbstractPApplet {
 
 		//example curve
 		controlPoints = new Vector3f[]{
-			new Vector3f(-50, -30, -70), //start
-			new Vector3f(-60, 10, -40),
-			new Vector3f(-70, 12, -6),
+			new Vector3f(-60, -40, -80), //start
+			new Vector3f(-60, -10, -40),
+			new Vector3f(-30, 12, -6),
 			new Vector3f(0, 50, 60),
 			new Vector3f(80, 45, 140),
-			new Vector3f(150, 80, 200), //end
-			new Vector3f(140, 90, 160),
+			new Vector3f(170, 90, 200), //end
+			new Vector3f(140, 70, 160),
 			new Vector3f(100, 37, 100),
-			new Vector3f(50, 39, 40),
-			//                        new Vector3f(17.307629f, 0.0f, -47.95851f)
+			new Vector3f(50, 19, 40),
 			new Vector3f(0, 15, -20)
 		};
-//                for(int i = 0; i < controlPoints.length; i++) controlPoints[i].y = 0.0f;
+//		for(int i = 0; i < controlPoints.length; i++) controlPoints[i].y = 0.0f;
 
 		curveA = new Vector3f[controlPoints.length / 2 + 1];
 		curveB = new Vector3f[controlPoints.length / 2 + 1];
@@ -135,8 +134,8 @@ public class CurveAverage extends AbstractPApplet {
 	 * @param output an empty list, place the traced point in here
 	 */
 	public void trace(Vector3f[] curveA, Vector3f[] curveB, List<MedialAxisTransform.TracePoint> output) {
-		trace1(curveA, curveB, output);
-//		trace2(curveA, curveB, output);
+//		trace1(curveA, curveB, output);
+		trace2(curveA, curveB, output);
 	}
 	
 	public void trace1(Vector3f[] curveA, Vector3f[] curveB, List<MedialAxisTransform.TracePoint> output) {
@@ -279,7 +278,7 @@ public class CurveAverage extends AbstractPApplet {
 		float ta = 0;
 		float tb = 0;
 		//now run the tracing
-		float stepSize = 1f;
+		float stepSize = 2f;
 		while (true) {
 			//compute tangents numerically
 			float tangentStepSize = 0.001f;
@@ -293,18 +292,6 @@ public class CurveAverage extends AbstractPApplet {
 			//move current position along this tangent
 			current = current.add(t);
 			//find closest projections
-			//TODO: replace this by snap() and update current
-//			MedialAxisTransform.ClosestInfo cA =
-//					MedialAxisTransform.findClosest(curveA, current);
-//			MedialAxisTransform.ClosestInfo cB =
-//					MedialAxisTransform.findClosest(curveB, current);
-//			if (cA==null || cB==null) {
-//				LOG.log(Level.SEVERE, "unable to compute closest projection of {0} at time t={1}:{2}", 
-//						new Object[]{current, ta, tb});
-//				return false;
-//			}
-//			float nextTA = (cA.curveIndex + cA.time) / (curveA.length-1);
-//			float nextTB = (cB.curveIndex + cB.time) / (curveB.length-1);
 			SnapResult r = snap(curveA, curveB, current);
 			if (r == null) {
 				return false;
@@ -335,7 +322,10 @@ public class CurveAverage extends AbstractPApplet {
 	private SnapResult snap(Vector3f[] curveA, Vector3f[] curveB, Vector3f current) {
 		int maxSteps = 20;
 		float stepSize = 0.2f;
+		float tangentSize = 0.001f;
 		for (int i=0; i<maxSteps; ++i) {
+			
+			//snap to get the same distances to the control curves
 			MedialAxisTransform.ClosestInfo cA =
 					MedialAxisTransform.findClosest(curveA, current);
 			MedialAxisTransform.ClosestInfo cB =
@@ -347,6 +337,9 @@ public class CurveAverage extends AbstractPApplet {
 			}
 			float nextTA = (cA.curveIndex + cA.time) / (curveA.length-1);
 			float nextTB = (cB.curveIndex + cB.time) / (curveB.length-1);
+			if (nextTA >= 1 || nextTB >= 1) {
+				break;
+			}
 			Vector3f A = cA.Pt;
 			Vector3f B = cB.Pt;
 			float distA = A.distance(current);
@@ -357,6 +350,18 @@ public class CurveAverage extends AbstractPApplet {
 				break;
 			}
 			Vector3f dir = (cA.dir.subtract(cB.dir)).normalizeLocal().multLocal(-delta);
+			current.addLocal(dir);
+			
+			//snap into the plane of the line
+			Vector3f NA = new Vector3f();
+			Vector3f NB = new Vector3f();
+			float distPA = distancePointPlane(current, A, B, Curve.interpolate(curveA, Math.min(1, nextTA + tangentSize)), NA);
+			float distPB = distancePointPlane(current, B, A, Curve.interpolate(curveB, Math.min(1, nextTB + tangentSize)), NB);
+			//in the optimal position, distPA = distPB
+			System.out.println("  distPA="+distPA+", distPB="+distPB);
+			dir.zero();
+			dir.addScaleLocal(-distPA * 0.01f, NA);
+			dir.addScaleLocal(-distPB * 0.01f, NB);
 			current.addLocal(dir);
 		}
 		//Build snap result
@@ -377,6 +382,19 @@ public class CurveAverage extends AbstractPApplet {
 		r.tb = tb;
 		r.radius = (current.distance(cA.Pt) + current.distance(cB.Pt)) / 2f;
 		return r;
+	}
+	private float distancePointPlane(Vector3f P, Vector3f A, Vector3f B, Vector3f C, Vector3f N) {
+		//Compute normal
+		N.set((B.subtract(A)).cross(C.subtract(A)));
+		N.normalizeLocal();
+		//compute plane equation ax+bx+cz+d=0
+		float a = N.x;
+		float b = N.y;
+		float c = N.z;
+		float d = -a*A.x - b*A.y - c*A.z;
+		//compute signed distance
+		float dist = a*P.x + b*P.y + c*P.z + d;
+		return dist;
 	}
 
 	public void drawPoint(Vector3f P, int color) {
