@@ -12,7 +12,7 @@ import static curveavg.Pv3D.*;
  *
  * @author Sebastian Weiss
  */
-public class AbstractPApplet extends PApplet {
+public abstract class AbstractPApplet extends PApplet {
 	public static int black = 0xff000000;
 	public static int white = 0xffFFFFFF; // set more colors using Menu >  Tools > Color Selector
 	public static int red = 0xffFF0000;

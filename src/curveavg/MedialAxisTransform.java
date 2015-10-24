@@ -84,6 +84,22 @@ public class MedialAxisTransform {
 		 * {@code Curve.interpolate(curveB, projectionOnB[i]).distance(center) == radius} for each i.
 		 */
 		public float[] projectionOnB;
+
+		public TracePoint() {
+		}
+
+		public TracePoint(Vector3f center, float radius, float[] projectionOnA, float[] projectionOnB) {
+			this.center = center;
+			this.radius = radius;
+			this.projectionOnA = projectionOnA;
+			this.projectionOnB = projectionOnB;
+		}
+		public TracePoint(Vector3f center, float radius, float projectionOnA, float projectionOnB) {
+			this.center = center;
+			this.radius = radius;
+			this.projectionOnA = new float[]{projectionOnA};
+			this.projectionOnB = new float[]{projectionOnB};
+		}
 	}
 	
         /**

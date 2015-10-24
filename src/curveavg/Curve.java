@@ -30,6 +30,7 @@ public class Curve {
 		time *= n-1;
 		int i = (int) time;
 		float frac = time % 1;
+		// --> time = (i+frac) / (n-1)
 		
 		if (frac < EPSILON) {
 			return controlPoints[i];
