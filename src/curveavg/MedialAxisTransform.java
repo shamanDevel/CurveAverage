@@ -5,17 +5,11 @@
  */
 package curveavg;
 
-import processing.core.*;
-import processing.event.*;
-import java.util.List;
-import java.util.Random;
 import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
-import org.apache.commons.math3.analysis.solvers.NewtonRaphsonSolver;
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
-import org.apache.commons.math3.exception.TooManyEvaluationsException;
+import org.apache.commons.math3.analysis.solvers.NewtonRaphsonSolver;
 import org.apache.commons.math3.exception.NumberIsTooLargeException;
-import static processing.core.PConstants.QUAD_STRIP;
-import static processing.core.PConstants.TWO_PI;
+import org.apache.commons.math3.exception.TooManyEvaluationsException;
 /**
  * Implements the medial axis transformation between two curves.
  * @author Sebastian Weiss
@@ -476,16 +470,16 @@ public class MedialAxisTransform {
                 
                 // Last segment (had to switch p0 and p1 around)
                 else if (i==n-2) {
-                    Vector3f P0 = curve[n-2];
-                    Vector3f P1 = curve[n-1];
-                    Vector3f T0 = curve[n-3].subtract(curve[n-2]).multLocal(Curve.TANGENT_SCALE);
+                    Vector3f P0 = curve[n-1];
+                    Vector3f P1 = curve[n-2];
+                    Vector3f T0 = curve[n-3].subtract(curve[n-1]).multLocal(Curve.TANGENT_SCALE);
                     float time = perpPointOnQuadraticHermite(P0, T0, P1, Q);
                     if(time > -1e-3) {
                         Vector3f Pt = Curve.quadraticHermite(P0, T0, P1, time);
                         float dist = Pt.distance(Q);
                         if(dist < minDist) {
                             info = new ClosestInfo(Pt, Curve.quadraticHermiteTangent(P0, T0, P1, time), 
-                                Q.subtract(Pt).normalize(), time, i);
+                                Q.subtract(Pt).normalize(), 1-time, i);
                             minDist = dist;
                         }
                     }
