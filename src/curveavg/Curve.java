@@ -26,6 +26,7 @@ public class Curve {
 	 * @return the interpolated vector
 	 */
 	public static Vector3f interpolate(Vector3f[] controlPoints, float time) {
+		time = Math.min(1, Math.max(0, time));
 		int n = controlPoints.length;
 		time *= n-1;
 		int i = (int) time;

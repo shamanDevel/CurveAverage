@@ -34,8 +34,15 @@ public class CurveAverage extends AbstractPApplet {
 //float rx=-0.06*TWO_PI, ry=-0.04*TWO_PI;    // view angles manipulated when space pressed but not mouse
 	private float rx = 0, ry = 0;    // view angles manipulated when space pressed but not mouse
 	private boolean animating = false, tracking = false, center = true, gouraud = true;
+	
 	private boolean interpolateControlCurve = true;
 	private boolean equispacedInterpolation = true;
+	private boolean showClosestProjection = true;
+	private boolean showCircularArcs = false;
+	private boolean showNet = false;
+	private boolean showInflation = false;
+	private boolean showInflationWireframed = false;
+	
 	private boolean viewpoint = false;
 	private PImage myFace;
 	private boolean filming = false, takePicture = false;
@@ -56,7 +63,9 @@ public class CurveAverage extends AbstractPApplet {
 
 	String title = "6491 P3 2015: Curve Average", name = "Sebastian Weiß, Can Erdogan",
 			menu = "!:picture, ~:(start/stop)capture, space:rotate, "
-			+ "s/wheel:closer, a:anim, i:interpolate control curve, e:equispaced interpolation, #:quit",
+			+ "s/wheel:closer, a:anim \n"
+			+ "i:interpolate control curve, e:equispaced interpolation, "
+			+ "p:show closest projections, c:show circular arc, n: show net, t: show inflation tube",
 			guide = "click'n'drag the control points of the two curves green and blue"; // user's guide
 
 	public static void main(String[] args) {
@@ -115,286 +124,6 @@ public class CurveAverage extends AbstractPApplet {
 		 new Vector3f(-70, -30, -70)
 		 };
 		 */
-	}
-
-	/**
-	 * Traces the medial axis of the two curves {@code curveA} and
-	 * {@code curveB}.
-	 * <br>
-	 * Both curves start and end in the same points ({@code curveA[0]=curveB[0]}
-	 * and {@code curveA[curveA.length-1]=curveB[curveB.length-1]}). The curves
-	 * are interpolated using {@link Curve#interpolate(curveavg.Vector3f[], float)
-	 * }.
-	 * <br>
-	 * The traced points on the medial axis are represented by instances of the
-	 * class {@link TracePoint}. Place the points in the provided output list.
-	 *
-	 * @param curveA the control points of the first curve.
-	 * @param curveB the control points of the second curve
-	 * @param output an empty list, place the traced point in here
-	 */
-	public void trace(Vector3f[] curveA, Vector3f[] curveB, List<MedialAxisTransform.TracePoint> output) {
-//		trace1(curveA, curveB, output);
-		trace2(curveA, curveB, output);
-	}
-	
-	public void trace1(Vector3f[] curveA, Vector3f[] curveB, List<MedialAxisTransform.TracePoint> output) {
-
-		final boolean dbg = false;
-		if (dbg) {
-			System.out.println("\n");
-		}
-
-		// Clear the output
-		output.clear();
-
-		// Pick two points close to the intersection on the first segments and find their tangents
-		Vector3f tA = Curve.quadraticHermiteTangent(curveA[0], curveA[1], curveA[2].subtract(curveA[0]), 0.01f);
-		Vector3f tB = Curve.quadraticHermiteTangent(curveB[0], curveB[1], curveB[2].subtract(curveB[0]), 0.01f);
-
-		// Compute the medial axis of the tangents and move off the intersection.
-		// NOTE: The jump needs to be large to avoid weird phenomena.
-		MedialAxisTransform.Line line = MedialAxisTransform.medialAxisLine(curveA[0], tA, curveB[0], tB);
-		Vector3f Q1 = curveA[0].addScale(30.0f, line.v);
-
-		// Project out from the current point in the direction of the medial axis of its projected tangents
-		// and refine iteratively by moving in the perpendicular direction.
-		final float stepSize = 10.0f;
-		for (int idx = 0; idx < 55; idx++) {
-
-			// Stop condition
-			if (Q1.distance(curveA[curveA.length - 1]) < 1) {
-				break;
-			}
-			if (dbg) {
-				System.out.println("Iteration " + idx + "---------------------");
-			}
-			if (dbg) {
-				System.out.println("Line p: " + line.p.toString() + ", line v: " + line.v.toString());
-			}
-
-			// Project out the point
-			if (dbg) {
-				System.out.println("Q1 initial: " + Q1.toString());
-			}
-			Q1 = Q1.addScale(stepSize, line.v);
-			if (dbg) {
-				System.out.println("Q1 projected: " + Q1.toString());
-			}
-
-			// Debugging information
-			if (dbg) {
-				fill(red);
-				showCylinder(Q1.addScale(-3 * SCALE, line.v), Q1.addScale(3 * SCALE, line.v), 2, 8);
-				drawPoint(Q1, red);
-			}
-
-			// Move the estimate in the negative average direction of the projections
-			// until the difference in their distances vanishes
-			int counter = 0;
-			while (true) {
-
-				// Find the projections 
-				MedialAxisTransform.ClosestInfo infoA = MedialAxisTransform.findClosest(curveA, Q1);
-				MedialAxisTransform.ClosestInfo infoB = MedialAxisTransform.findClosest(curveB, Q1);
-				assert (infoA.found);
-				assert (infoB.found);
-
-				// Find the distances and their difference
-				float distA = Q1.distance(infoA.Pt);
-				float distB = Q1.distance(infoB.Pt);
-				float err = distA - distB;
-				if (dbg) {
-					System.out.println("distA: " + distA + ", distB: " + distB + ", |diff|: " + Math.abs(err) + ", dirA: " + infoA.dir.toString() + ", dirB: " + infoB.dir.toString());
-				}
-
-				// Stop if the difference is small enough and add to the list
-				if (Math.abs(err) < 1e-3) {
-
-					// Generate the trace point
-					MedialAxisTransform.TracePoint tp = new MedialAxisTransform.TracePoint();
-					tp.center = Q1;
-					tp.projectionOnA = new float[1];
-					tp.projectionOnA[0] = (infoA.time + infoA.curveIndex) / (curveA.length-1);
-					tp.projectionOnB = new float[1];
-					tp.projectionOnB[0] = (infoB.time + infoB.curveIndex) / (curveB.length-1);
-					tp.radius = (distA + distB) / 2.0f;
-					output.add(tp);
-
-					// Stop
-					if (dbg) {
-						System.out.println("Converged...");
-					}
-					break;
-				}
-
-				// Move the point in the average direction
-				Vector3f dir = (infoA.dir.subtract(infoB.dir)).normalize();
-				Q1 = Q1.addScaleLocal(-0.2f * err, dir);
-				if (counter++ > 50) {
-					break;
-				}
-			}
-
-			// Visualize the medial axis
-			if (dbg) {
-				System.out.println("Q1 later: " + Q1.toString());
-			}
-			if (dbg) {
-				drawPoint(Q1, orange);
-			}
-
-			// Find the closest points to the new medial axis
-			MedialAxisTransform.ClosestInfo infoA = MedialAxisTransform.findClosest(curveA, Q1);
-			MedialAxisTransform.ClosestInfo infoB = MedialAxisTransform.findClosest(curveB, Q1);
-
-			// End condition: if the projected point on one of the curves is
-			// too close to the final intersection
-			if (infoA.curveIndex == (curveA.length - 2)) {
-				if (infoA.time > 0.4) {
-					break;
-				}
-				System.out.println("iter: " + idx + ", curveIndex: " + infoA.curveIndex + ", time: " + infoA.time);
-			}
-
-			// Visualize stuff
-			if (dbg) {
-				drawPoint(infoA.Pt, blue);
-				showCylinder(infoA.Pt.addScale(-1 * SCALE, infoA.dir), infoA.Pt.addScale(1 * SCALE, infoA.dir), 2, 8);
-				drawPoint(infoB.Pt, green);
-				showCylinder(infoB.Pt.addScale(-1 * SCALE, infoB.dir), infoB.Pt.addScale(1 * SCALE, infoB.dir), 2, 8);
-			}
-
-			// Find the medial axis of the tangent lines 
-			line = MedialAxisTransform.medialAxisLine(infoA.Pt, infoA.tangent, infoB.Pt, infoB.tangent);
-		}
-	}
-	
-	public boolean trace2(Vector3f[] curveA, Vector3f[] curveB, List<MedialAxisTransform.TracePoint> output) {
-		//add start point
-		output.add(new MedialAxisTransform.TracePoint(curveA[0], 0, 0, 0));
-		
-		Vector3f current = curveA[0].clone();
-		float ta = 0;
-		float tb = 0;
-		//now run the tracing
-		float stepSize = 2f;
-		while (true) {
-			//compute tangents numerically
-			float tangentStepSize = 0.001f;
-			Vector3f tA = Curve.interpolate(curveA, Math.min(1, ta+tangentStepSize))
-					.subtract(Curve.interpolate(curveA, ta));
-			Vector3f tB = Curve.interpolate(curveB, Math.min(1, tb+tangentStepSize))
-					.subtract(Curve.interpolate(curveB, tb));
-			tA.normalizeLocal();
-			tB.normalizeLocal();
-			Vector3f t = tA.add(tB).multLocal(stepSize);
-			//move current position along this tangent
-			current = current.add(t);
-			//find closest projections
-			SnapResult r = snap(curveA, curveB, current);
-			if (r == null) {
-				return false;
-			}
-			float nextTA = r.ta;
-			float nextTB = r.tb;
-			current = r.center;
-			System.out.println("current="+current+", tA="+nextTA+", tB="+nextTB);
-			if (nextTA >= 1 || nextTB >= 1) {
-				return true; //end reached
-			}
-			if (nextTA < ta || nextTB < tb) {
-				LOG.severe("going backwards!!!");
-				return false;
-			}
-			//update ta, tb, add trace point
-			ta = nextTA;
-			tb = nextTB;
-			output.add(new MedialAxisTransform.TracePoint(current, 0, ta, tb));
-		}
-	}
-	private static class SnapResult {
-		Vector3f center;
-		float radius;
-		float ta, tb;
-	}
-	//Snaps current on the medial axis
-	private SnapResult snap(Vector3f[] curveA, Vector3f[] curveB, Vector3f current) {
-		int maxSteps = 20;
-		float stepSize = 0.2f;
-		float tangentSize = 0.001f;
-		for (int i=0; i<maxSteps; ++i) {
-			
-			//snap to get the same distances to the control curves
-			MedialAxisTransform.ClosestInfo cA =
-					MedialAxisTransform.findClosest(curveA, current);
-			MedialAxisTransform.ClosestInfo cB =
-					MedialAxisTransform.findClosest(curveB, current);
-			if (cA==null || cB==null) {
-				LOG.log(Level.SEVERE, "unable to compute closest projection of {0}", 
-						new Object[]{current});
-				return null;
-			}
-			float nextTA = (cA.curveIndex + cA.time) / (curveA.length-1);
-			float nextTB = (cB.curveIndex + cB.time) / (curveB.length-1);
-			if (nextTA >= 1 || nextTB >= 1) {
-				break;
-			}
-			Vector3f A = cA.Pt;
-			Vector3f B = cB.Pt;
-			float distA = A.distance(current);
-			float distB = B.distance(current);
-			float delta = distA - distB;
-			System.out.println(" snap current="+current+", distA="+distA+", distB="+distB+", delta="+delta);
-			if (Math.abs(delta) < 1e-4) {
-				break;
-			}
-			Vector3f dir = (cA.dir.subtract(cB.dir)).normalizeLocal().multLocal(-delta);
-			current.addLocal(dir);
-			
-			//snap into the plane of the line
-			Vector3f NA = new Vector3f();
-			Vector3f NB = new Vector3f();
-			float distPA = distancePointPlane(current, A, B, Curve.interpolate(curveA, Math.min(1, nextTA + tangentSize)), NA);
-			float distPB = distancePointPlane(current, B, A, Curve.interpolate(curveB, Math.min(1, nextTB + tangentSize)), NB);
-			//in the optimal position, distPA = distPB
-			System.out.println("  distPA="+distPA+", distPB="+distPB);
-			dir.zero();
-			dir.addScaleLocal(-distPA * 0.01f, NA);
-			dir.addScaleLocal(-distPB * 0.01f, NB);
-			current.addLocal(dir);
-		}
-		//Build snap result
-		MedialAxisTransform.ClosestInfo cA =
-					MedialAxisTransform.findClosest(curveA, current);
-		MedialAxisTransform.ClosestInfo cB =
-				MedialAxisTransform.findClosest(curveB, current);
-		if (cA==null || cB==null) {
-			LOG.log(Level.SEVERE, "unable to compute closest projection of {0}", 
-					new Object[]{current});
-			return null;
-		}
-		float ta = (cA.curveIndex + cA.time) / (curveA.length-1);
-		float tb = (cB.curveIndex + cB.time) / (curveB.length-1);
-		SnapResult r = new SnapResult();
-		r.center = current;
-		r.ta = ta;
-		r.tb = tb;
-		r.radius = (current.distance(cA.Pt) + current.distance(cB.Pt)) / 2f;
-		return r;
-	}
-	private float distancePointPlane(Vector3f P, Vector3f A, Vector3f B, Vector3f C, Vector3f N) {
-		//Compute normal
-		N.set((B.subtract(A)).cross(C.subtract(A)));
-		N.normalizeLocal();
-		//compute plane equation ax+bx+cz+d=0
-		float a = N.x;
-		float b = N.y;
-		float c = N.z;
-		float d = -a*A.x - b*A.y - c*A.z;
-		//compute signed distance
-		float dist = a*P.x + b*P.y + c*P.z + d;
-		return dist;
 	}
 
 	public void drawPoint(Vector3f P, int color) {
@@ -533,7 +262,7 @@ public class CurveAverage extends AbstractPApplet {
 			}
 			//trace medial axis
 			ma.clear();
-			trace(curveA, curveB, ma);
+			MedialAxisTransform.trace(curveA, curveB, ma);
 		}
 		//show control curves
 		if (interpolateControlCurve) {
@@ -561,21 +290,23 @@ public class CurveAverage extends AbstractPApplet {
 		}
 		showQuads(C, CURVE_CYLINDER_RADIUS/2, CURVE_CYLINDER_SAMPLES, black);
 		
-		//show net to closest projections
-		float step = (float) ma.size() / (float) MEDIAL_AXIS_NET_COUNT;
-		for (float f=0; f<ma.size(); f+=step) {
-			int i = (int) f;
-			MedialAxisTransform.TracePoint p = ma.get(i);
-			drawPoint(p.center, black);
-			for (float t : p.projectionOnA) {
-				Vector3f proj = Curve.interpolate(curveA, t);
-				drawPoint(proj, black);
-				showCylinder(p.center, proj, CURVE_CYLINDER_RADIUS / 4, CURVE_CYLINDER_SAMPLES);
-			}
-			for (float t : p.projectionOnB) {
-				Vector3f proj = Curve.interpolate(curveB, t);
-				drawPoint(proj, black);
-				showCylinder(p.center, proj, CURVE_CYLINDER_RADIUS / 4, CURVE_CYLINDER_SAMPLES);
+		//show closest projections
+		if (showClosestProjection) {
+			float step = (float) ma.size() / (float) MEDIAL_AXIS_NET_COUNT;
+			for (float f=step; f<ma.size(); f+=step) {
+				int i = (int) f;
+				MedialAxisTransform.TracePoint p = ma.get(i);
+				drawPoint(p.center, black);
+				for (float t : p.projectionOnA) {
+					Vector3f proj = Curve.interpolate(curveA, t);
+					drawPoint(proj, black);
+					showCylinder(p.center, proj, CURVE_CYLINDER_RADIUS / 4, CURVE_CYLINDER_SAMPLES);
+				}
+				for (float t : p.projectionOnB) {
+					Vector3f proj = Curve.interpolate(curveB, t);
+					drawPoint(proj, black);
+					showCylinder(p.center, proj, CURVE_CYLINDER_RADIUS / 4, CURVE_CYLINDER_SAMPLES);
+				}
 			}
 		}
 	}
@@ -682,9 +413,24 @@ public class CurveAverage extends AbstractPApplet {
 			equispacedInterpolation = !equispacedInterpolation;
 			recalculateCurve = true;
 		}
+		if (key == 'p') {
+			showClosestProjection = !showClosestProjection;
+		}
+		if (key == 'c') {
+			showCircularArcs = !showCircularArcs;
+		}
+		if (key == 'n') {
+			showNet = !showNet;
+		}
+		if (key == 't') {
+			showInflation = !showInflation;
+		}
+		if (key == 'w') {
+			showInflationWireframed = !showInflationWireframed;
+		}
 
 		// if(key=='.') F=P.Picked(); // snaps focus F to the selected vertex of P (easier to rotate and zoom while keeping it in center)
-		if (key == 'c') {
+		if (key == 'f') {
 			center = !center; // snaps focus F to the selected vertex of P (easier to rotate and zoom while keeping it in center)
 		}
 		if (key == 't') {
@@ -805,8 +551,11 @@ public class CurveAverage extends AbstractPApplet {
 	}
 
 	private void displayFooter() { // Displays help text at the bottom
-		scribeFooter(guide, 1);
-		scribeFooter(menu, 0);
+		String menu2[] = menu.split("\\n");
+		scribeFooter(guide, menu2.length);
+		for (int i=0; i<menu2.length; ++i) {
+			scribeFooter(menu2[i], menu2.length-i-1);
+		}
 	}
 
 	;
