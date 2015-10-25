@@ -36,7 +36,8 @@ public class CurveAverage extends AbstractPApplet {
 	private static final int MEDIAL_AXIS_NET_COUNT = 7;
 	private static final float MEDIAL_AXIS_NET_RADIUS = 0.02f * SCALE;
 	private static final int MEDIAL_AXIS_ANIM_LENGTH = 4; //two cycles back and forth
-	private static final float MEDIAL_AXIS_ANIM_SPEED = 2; //1/2 seconds per direction
+	private static final float MEDIAL_AXIS_ANIM_SPEED = 1; //1/1 seconds per direction
+	private static final int MEDIAL_AXIS_INFLATION_RESOLUTION = 32;
 
 	private float dz = 0; // distance to camera. Manipulated with wheel or when 
 //float rx=-0.06*TWO_PI, ry=-0.04*TWO_PI;    // view angles manipulated when space pressed but not mouse
@@ -368,7 +369,7 @@ public class CurveAverage extends AbstractPApplet {
 		}
 		//show animation
 		if (animating) {
-			animStep += tpf*animDirection;
+			animStep += tpf*animDirection*MEDIAL_AXIS_ANIM_SPEED;
 			if (animStep>1) {
 				animDirection = -1;
 				animCounter++;
@@ -397,8 +398,27 @@ public class CurveAverage extends AbstractPApplet {
 				showQuads(interpolatedAxis, INTERPOLATED_AXIS_RADIUS, CURVE_CYLINDER_SAMPLES, red, true);
 			}
 		}
+		//show inflation
+		if (showInflation) {
+			Vector3f[] medialAxis = new Vector3f[ma.size()];
+			float[] radii = new float[ma.size()];
+			for (int i=0; i<ma.size(); ++i) {
+				MedialAxisTransform.TracePoint p = ma.get(i);
+				medialAxis[i] = p.center;
+				radii[i] = p.radius*2;
+			}
+			showQuads(medialAxis, radii, MEDIAL_AXIS_INFLATION_RESOLUTION, grey80, lightgrey80);
+		}
 	}
 
+	/**
+	 * Show a quad tube
+	 * @param C the control points of that tube
+	 * @param r the radius of the tube
+	 * @param ne the resolution of the tube
+	 * @param col the color
+	 * @param checked if true, a checkered pattern is applied
+	 */
 	void showQuads(Vector3f[] C, float r, int ne, int col, boolean checked) {
 		Vector3f[] L = new Vector3f[C.length];
 		L[0] = C[1].subtract(C[0]).crossLocal(Vector3f.UNIT_Z).normalizeLocal();
@@ -455,10 +475,84 @@ public class CurveAverage extends AbstractPApplet {
 					endShape(CLOSE);
 				}
 			}
-			;
+		}
+	}
+	
+	/**
+	 * Show a quad tube with variable radius.
+	 * the arrays C and r must be of equal length.
+	 * @param C the control points of that tube
+	 * @param r the radius of the tube at the same control point
+	 * @param ne the resolution of the tube
+	 * @param col1 the first color
+	 * @param col2 the second color
+	 */
+	void showQuads(Vector3f[] C, float[] r, int ne, int col1, int col2) {
+		Vector3f[] L = new Vector3f[C.length];
+		L[0] = C[1].subtract(C[0]).crossLocal(Vector3f.UNIT_Z).normalizeLocal();
+		Vector3f[][] P = new Vector3f[2][ne];
+		int p = 0;
+		boolean dark = true;
+		float[] c = new float[ne];
+		float[] s = new float[ne];
+		for (int j = 0; j < ne; j++) {
+			c[j] = cos(TWO_PI * j / ne);
+			s[j] = sin(TWO_PI * j / ne);
+		}
+		for (int j = 0; j < ne; j++) {
+			P[p][j] = C[0].add(C[1]);
+			P[p][j].addScaledLocal(c[j]*(r[1]+r[0])/2, L[0]);
+			P[p][j].addScaledLocal(s[j]*(r[1]+r[0])/2, L[0].cross(C[1].subtract(C[0]).normalizeLocal()));
+		}
+		p = 1 - p;
+		for (int i = 1; i < C.length - 1; i++) {
+			dark = !dark;
+			Vector3f I = C[i].subtract(C[i - 1]).normalizeLocal();
+			Vector3f Ip = C[i + 1].subtract(C[i]).normalizeLocal();
+			Vector3f IpmI = Ip.subtract(I);
+			Vector3f N = I.cross(Ip);
+			if (N.lengthSquared() < 0.001 * 0.001) {
+				L[i] = L[i - 1];
+			} else {
+				float mixed = N.normalize().cross(I).dot(L[i - 1]);
+				L[i] = L[i - 1].clone();
+				L[i].addScaledLocal(mixed, N.normalize().cross(IpmI));
+			}
+			I = L[i].normalize();
+			Vector3f J = I.cross(Ip).normalize();
+			for (int j = 0; j < ne; j++) {
+				P[p][j] = C[i].add(C[i + 1]);
+				P[p][j].addScaledLocal(c[j]*(r[i]+r[i+1])/2, I);
+				P[p][j].addScaledLocal(s[j]*(r[i]+r[i+1])/2, J);
+			}
+			p = 1 - p;
+			if (i > 0) {
+				for (int j = 0; j < ne; j++) {
+					if (dark) {
+						fill(col1);
+					} else {
+						fill(col2);
+					}
+					dark = !dark;
+					int jp = (j + ne - 1) % ne;
+					beginShape(QUADS);
+					vertex(P[p][jp].mult(0.5f));
+					vertex(P[p][j].mult(0.5f));
+					vertex(P[1 - p][j].mult(0.5f));
+					vertex(P[1 - p][jp].mult(0.5f));
+					endShape(CLOSE);
+				}
+			}
 		}
 	}
 
+	/**
+	 * Shows a cyclinder from A to B with radius r and resolution s
+	 * @param A
+	 * @param B
+	 * @param r
+	 * @param s 
+	 */
 	void showCylinder(Vector3f A, Vector3f B, float r, int s) {
 		Vector3f I = A.subtract(B).normalizeLocal(); // tangent
 		Vector3f X = new Vector3f(1, 0, 0);

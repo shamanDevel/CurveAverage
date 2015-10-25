@@ -22,6 +22,9 @@ public abstract class AbstractPApplet extends PApplet {
 	public static int cyan = 0xff00FDFF;
 	public static int magenta = 0xffFF00FB;
 	public static int grey = 0xff818181;
+	public static int grey80 = 0xcc818181;
+	public static int lightgrey = 0xffc8c8c8;
+	public static int lightgrey80 = 0xccc8c8c8;
 	public static int orange = 0xffFFA600;
 	public static int brown = 0xffB46005;
 	public static int metal = 0xffB5CCDE;

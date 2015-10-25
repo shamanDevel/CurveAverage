@@ -311,7 +311,7 @@ public class MedialAxisTransform {
 			//update ta, tb, add trace point
 			ta = nextTA;
 			tb = nextTB;
-			output.add(new MedialAxisTransform.TracePoint(current, 0, ta, tb));
+			output.add(new MedialAxisTransform.TracePoint(current, r.radius, ta, tb));
 		}
 	}
 	private static class SnapResult {
