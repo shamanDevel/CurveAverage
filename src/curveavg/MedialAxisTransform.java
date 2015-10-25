@@ -171,7 +171,7 @@ public class MedialAxisTransform {
 		// Compute the medial axis of the tangents and move off the intersection.
 		// NOTE: The jump needs to be large to avoid weird phenomena.
 		MedialAxisTransform.Line line = MedialAxisTransform.medialAxisLine(curveA[0], tA, curveB[0], tB);
-		Vector3f Q1 = curveA[0].addScale(30.0f, line.v);
+		Vector3f Q1 = curveA[0].addScaled(30.0f, line.v);
 
 		// Project out from the current point in the direction of the medial axis of its projected tangents
 		// and refine iteratively by moving in the perpendicular direction.
@@ -193,7 +193,7 @@ public class MedialAxisTransform {
 			if (dbg) {
 				System.out.println("Q1 initial: " + Q1.toString());
 			}
-			Q1 = Q1.addScale(stepSize, line.v);
+			Q1 = Q1.addScaled(stepSize, line.v);
 			if (dbg) {
 				System.out.println("Q1 projected: " + Q1.toString());
 			}
@@ -239,7 +239,7 @@ public class MedialAxisTransform {
 
 				// Move the point in the average direction
 				Vector3f dir = (infoA.dir.subtract(infoB.dir)).normalize();
-				Q1 = Q1.addScaleLocal(-0.2f * err, dir);
+				Q1 = Q1.addScaledLocal(-0.2f * err, dir);
 				if (counter++ > 50) {
 					break;
 				}
@@ -361,8 +361,8 @@ public class MedialAxisTransform {
 			//in the optimal position, distPA = distPB
 //			System.out.println("  distPA="+distPA+", distPB="+distPB);
 			dir.zero();
-			dir.addScaleLocal(-distPA * 0.01f, NA);
-			dir.addScaleLocal(-distPB * 0.01f, NB);
+			dir.addScaledLocal(-distPA * 0.01f, NA);
+			dir.addScaledLocal(-distPB * 0.01f, NB);
 			current.addLocal(dir);
 		}
 		//Build snap result
@@ -442,8 +442,8 @@ public class MedialAxisTransform {
 			Vector3f res = solveIntersection((g * u.x + p1.x), v1.x, p2.x, v2.x,
 					(g * u.y + p1.y), v1.y, p2.y, v2.y);
 			assert (res.z > 0);
-			Vector3f p1c = p1.addScale(res.x, v1);
-			Vector3f p2c = p2.addScale(res.y, v2);
+			Vector3f p1c = p1.addScaled(res.x, v1);
+			Vector3f p2c = p2.addScaled(res.y, v2);
 			maLine.p = (p1c.add(p2c)).mult(0.5f);
 
 			// Compute the direction of the bisecting line
@@ -476,7 +476,7 @@ public class MedialAxisTransform {
 		}
 
 		// Perform the operation for intersecting lines
-		maLine.p = new Vector3f(p1.addScale(res.x, v1));
+		maLine.p = new Vector3f(p1.addScaled(res.x, v1));
 		maLine.v = new Vector3f((v1.add(v2)).normalize());
 
 		if (debug) {

@@ -131,10 +131,10 @@ public class Curve {
 		float t2 = t*t;
 		float t3 = t2*t;
 		Vector3f P = new Vector3f();
-		P.addScaleLocal(2*t3 - 3*t2 + 1, P0);
-		P.addScaleLocal(t3 - 2*t2 + t, T0);
-		P.addScaleLocal(-2*t3 + 3*t2, P1);
-		P.addScaleLocal(t3 - t2, T1);
+		P.addScaledLocal(2*t3 - 3*t2 + 1, P0);
+		P.addScaledLocal(t3 - 2*t2 + t, T0);
+		P.addScaledLocal(-2*t3 + 3*t2, P1);
+		P.addScaledLocal(t3 - t2, T1);
 		return P;
 	}
 	
@@ -153,9 +153,9 @@ public class Curve {
 	public static Vector3f quadraticHermite(Vector3f P0, Vector3f T0, Vector3f P1, float t) {
 		float t2 = t*t;
 		Vector3f P = new Vector3f();
-		P.addScaleLocal(t2 - 2*t + 1, P0);
-		P.addScaleLocal(-t2 + 2*t, P1);
-		P.addScaleLocal(t2 - t, T0);
+		P.addScaledLocal(t2 - 2*t + 1, P0);
+		P.addScaledLocal(-t2 + 2*t, P1);
+		P.addScaledLocal(t2 - t, T0);
 		return P;
 	}
         
@@ -165,9 +165,9 @@ public class Curve {
 	 */
 	public static Vector3f quadraticHermiteTangent(Vector3f P0, Vector3f T0, Vector3f P1, float t) {
             Vector3f T = new Vector3f();
-            T.addScaleLocal(2*t - 2, P0);
-            T.addScaleLocal(-2*t + 2, P1);
-            T.addScaleLocal(2*t-1, T0);
+            T.addScaledLocal(2*t - 2, P0);
+            T.addScaledLocal(-2*t + 2, P1);
+            T.addScaledLocal(2*t-1, T0);
             Vector3f Pt1 = quadraticHermite(P0, T0, P1, t);
             Vector3f Pt2 = quadraticHermite(P0, T0, P1, t+1e-5f);
             Vector3f T2 = (Pt2.subtract(Pt1)).normalize();
@@ -183,10 +183,10 @@ public class Curve {
 	public static Vector3f cubicHermiteTangent(Vector3f P0, Vector3f T0, Vector3f P1, Vector3f T1, float t) {
 		float t2 = t*t;
 		Vector3f T = new Vector3f();
-		T.addScaleLocal(6*t2-6*t, P0);
-		T.addScaleLocal(3*t2 - 4*t + 1, T0);
-		T.addScaleLocal(-6*t2 + 6*t, P1);
-		T.addScaleLocal(3*t2 - 2*t, T1);
+		T.addScaledLocal(6*t2-6*t, P0);
+		T.addScaledLocal(3*t2 - 4*t + 1, T0);
+		T.addScaledLocal(-6*t2 + 6*t, P1);
+		T.addScaledLocal(3*t2 - 2*t, T1);
 		return T.normalize();
 	}
 	

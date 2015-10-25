@@ -217,7 +217,7 @@ public final class Vector3f implements Cloneable, java.io.Serializable {
 	 * @param scale the scaling factor
 	 * @return this vector
 	 */
-	public Vector3f addScaleLocal(float scale, Vector3f vec) {
+	public Vector3f addScaledLocal(float scale, Vector3f vec) {
 		x += vec.x * scale;
 		y += vec.y * scale;
 		z += vec.z * scale;
@@ -227,12 +227,12 @@ public final class Vector3f implements Cloneable, java.io.Serializable {
 	/**
 	 * Adds a scaled version of the specified vector to this vector and returns
 	 * the result as a new vector.
-	 * {@code this = this + (vec*scale)}.
+	 * {@code return this + (vec*scale)}.
 	 * @param vec the vector to add, after scaling it (not modified)
 	 * @param scale the scaling factor
 	 * @return the result as a new vector
 	 */
-	public Vector3f addScale(float scale, Vector3f vec) {
+	public Vector3f addScaled(float scale, Vector3f vec) {
 		float nx = x + vec.x * scale;
 		float ny = y + vec.y * scale;
 		float nz = z + vec.z * scale;

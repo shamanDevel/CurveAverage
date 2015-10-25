@@ -134,8 +134,8 @@ public class TestMedialAxisTransform {
 
             // Make sure the two lines intersect
             if(rand.nextFloat() < 0.2) {
-                Vector3f pTemp = p1.addScale(rand.nextFloat(), v1);
-                p2 = pTemp.addScale(rand.nextFloat(), v2);
+                Vector3f pTemp = p1.addScaled(rand.nextFloat(), v1);
+                p2 = pTemp.addScaled(rand.nextFloat(), v2);
             }
 
             // Call the function
@@ -147,7 +147,7 @@ public class TestMedialAxisTransform {
             // Get a random point on the medial axis and compute its distance
             // to each line
             for (int j = 0; j < 5; j++) {
-                Vector3f randPoint = l.p.addScale(rand.nextFloat(), l.v);
+                Vector3f randPoint = l.p.addScaled(rand.nextFloat(), l.v);
                 System.out.println("pr=" + randPoint.toString());
                 float proj1 = v1.dot(randPoint.subtract(p1));
                 float dist1 = (float) Math.sqrt((randPoint.subtract(p1)).lengthSquared() - proj1 * proj1);

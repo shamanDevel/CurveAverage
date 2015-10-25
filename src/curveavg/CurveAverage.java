@@ -28,7 +28,11 @@ public class CurveAverage extends AbstractPApplet {
 	private static final int CURVE_INTERPOLATION_SAMPLES = 32;
 	private static final int CURVE_CYLINDER_SAMPLES = 8;
 	private static final float CURVE_CYLINDER_RADIUS = 0.15f * SCALE;
-	private static final int MEDIAL_AXIS_NET_COUNT = 10;
+	private static final int MEDIAL_AXIS_CLOSEST_PROJECTIONS_COUNT = 10;
+	private static final int MEDIAL_AXIS_ARC_COUNT = 32;
+	private static final int MEDIAL_AXIS_ARC_RESOLUTION = 32;
+	private static final int MEDIAL_AXIS_NET_COUNT = 7;
+	private static final float MEDIAL_AXIS_NET_RADIUS = 0.02f * SCALE;
 
 	private float dz = 0; // distance to camera. Manipulated with wheel or when 
 //float rx=-0.06*TWO_PI, ry=-0.04*TWO_PI;    // view angles manipulated when space pressed but not mouse
@@ -38,7 +42,7 @@ public class CurveAverage extends AbstractPApplet {
 	private boolean interpolateControlCurve = true;
 	private boolean equispacedInterpolation = true;
 	private boolean showClosestProjection = true;
-	private boolean showCircularArcs = false;
+	private boolean showCircularArcs = true;
 	private boolean showNet = false;
 	private boolean showInflation = false;
 	private boolean showInflationWireframed = false;
@@ -208,8 +212,8 @@ public class CurveAverage extends AbstractPApplet {
 		 // Visualize the tangent
 		 Vector3f ux = (debugPoints[0].subtract(info1.Pt)).normalize();
 		 Vector3f uy = info1.tangent;
-		 Vector3f px = info1.Pt.addScale(0.4f * SCALE, ux);
-		 Vector3f py = info1.Pt.addScale(0.7f * SCALE, uy);
+		 Vector3f px = info1.Pt.addScaled(0.4f * SCALE, ux);
+		 Vector3f py = info1.Pt.addScaled(0.7f * SCALE, uy);
 		 fill(blue);
 		 showCylinder(info1.Pt, px, CURVE_CYLINDER_RADIUS/1.5f, CURVE_CYLINDER_SAMPLES);
 		 showCylinder(info1.Pt, py, CURVE_CYLINDER_RADIUS/2f, CURVE_CYLINDER_SAMPLES);
@@ -228,8 +232,8 @@ public class CurveAverage extends AbstractPApplet {
 			// Visualize the tangent
 			Vector3f ux = (debugPoints[0].subtract(info2.Pt)).normalize();
 			Vector3f uy = info2.tangent;
-			Vector3f px = info2.Pt.addScale(0.4f * SCALE, ux);
-			Vector3f py = info2.Pt.addScale(0.7f * SCALE, uy);
+			Vector3f px = info2.Pt.addScaled(0.4f * SCALE, ux);
+			Vector3f py = info2.Pt.addScaled(0.7f * SCALE, uy);
 			fill(green);
 			showCylinder(info2.Pt, px, CURVE_CYLINDER_RADIUS / 1.5f, CURVE_CYLINDER_SAMPLES);
 			showCylinder(info2.Pt, py, CURVE_CYLINDER_RADIUS / 2f, CURVE_CYLINDER_SAMPLES);
@@ -266,8 +270,8 @@ public class CurveAverage extends AbstractPApplet {
 		}
 		//show control curves
 		if (interpolateControlCurve) {
-			showQuads(samplesA, CURVE_CYLINDER_RADIUS, CURVE_CYLINDER_SAMPLES, blue);
-			showQuads(samplesB, CURVE_CYLINDER_RADIUS, CURVE_CYLINDER_SAMPLES, green);
+			showQuads(samplesA, CURVE_CYLINDER_RADIUS, CURVE_CYLINDER_SAMPLES, blue, true);
+			showQuads(samplesB, CURVE_CYLINDER_RADIUS, CURVE_CYLINDER_SAMPLES, green, true);
 		} else {
 			fill(blue);
 			for (int i = 1; i < curveA.length; ++i) {
@@ -284,15 +288,15 @@ public class CurveAverage extends AbstractPApplet {
 	
 	private void showMedialAxis() {
 		//interpolate center polyline
-		Vector3f[] C = new Vector3f[ma.size()];
+		Vector3f[] medialAxis = new Vector3f[ma.size()];
 		for (int i=0; i<ma.size(); ++i) {
-			C[i] = ma.get(i).center;
+			medialAxis[i] = ma.get(i).center;
 		}
-		showQuads(C, CURVE_CYLINDER_RADIUS/2, CURVE_CYLINDER_SAMPLES, black);
+		showQuads(medialAxis, CURVE_CYLINDER_RADIUS/2, CURVE_CYLINDER_SAMPLES, black, true);
 		
 		//show closest projections
 		if (showClosestProjection) {
-			float step = (float) ma.size() / (float) MEDIAL_AXIS_NET_COUNT;
+			float step = (float) ma.size() / (float) MEDIAL_AXIS_CLOSEST_PROJECTIONS_COUNT;
 			for (float f=step; f<ma.size(); f+=step) {
 				int i = (int) f;
 				MedialAxisTransform.TracePoint p = ma.get(i);
@@ -309,9 +313,30 @@ public class CurveAverage extends AbstractPApplet {
 				}
 			}
 		}
+		//show circular arcs
+		if (showCircularArcs) {
+			float step = (float) ma.size() / (float) MEDIAL_AXIS_ARC_COUNT;
+			for (float f=step; f<ma.size(); f+=step) {
+				int i = (int) f;
+				MedialAxisTransform.TracePoint p = ma.get(i);
+				Vector3f P = p.center;
+				Vector3f A = Curve.interpolate(curveA, p.projectionOnA[0]);
+				Vector3f B = Curve.interpolate(curveB, p.projectionOnB[0]);
+				//compute arc
+				CircularArc ca = new CircularArc(P, A, B);
+				//draw arc
+				Vector3f[] arc = new Vector3f[MEDIAL_AXIS_ARC_RESOLUTION];
+				for (int j=0; j<arc.length; ++j) {
+					float t = j / (float) (arc.length-1);
+					arc[j] = ca.getPointOnArc(t);
+				}
+				showQuads(arc, MEDIAL_AXIS_NET_RADIUS, 4, black, false);
+//				drawPoint(ca.getCenter(), yellow);
+			}
+		}
 	}
 
-	void showQuads(Vector3f[] C, float r, int ne, int col) {
+	void showQuads(Vector3f[] C, float r, int ne, int col, boolean checked) {
 		Vector3f[] L = new Vector3f[C.length];
 		L[0] = C[1].subtract(C[0]).crossLocal(Vector3f.UNIT_Z).normalizeLocal();
 		Vector3f[][] P = new Vector3f[2][ne];
@@ -325,8 +350,8 @@ public class CurveAverage extends AbstractPApplet {
 		}
 		for (int j = 0; j < ne; j++) {
 			P[p][j] = C[0].add(C[1]);
-			P[p][j].addScaleLocal(c[j], L[0]);
-			P[p][j].addScaleLocal(s[j], L[0].cross(C[1].subtract(C[0]).normalizeLocal()));
+			P[p][j].addScaledLocal(c[j], L[0]);
+			P[p][j].addScaledLocal(s[j], L[0].cross(C[1].subtract(C[0]).normalizeLocal()));
 		}
 		p = 1 - p;
 		for (int i = 1; i < C.length - 1; i++) {
@@ -340,19 +365,19 @@ public class CurveAverage extends AbstractPApplet {
 			} else {
 				float mixed = N.normalize().cross(I).dot(L[i - 1]);
 				L[i] = L[i - 1].clone();
-				L[i].addScaleLocal(mixed, N.normalize().cross(IpmI));
+				L[i].addScaledLocal(mixed, N.normalize().cross(IpmI));
 			}
 			I = L[i].normalize();
 			Vector3f J = I.cross(Ip).normalize();
 			for (int j = 0; j < ne; j++) {
 				P[p][j] = C[i].add(C[i + 1]);
-				P[p][j].addScaleLocal(c[j], I);
-				P[p][j].addScaleLocal(s[j], J);
+				P[p][j].addScaledLocal(c[j], I);
+				P[p][j].addScaledLocal(s[j], J);
 			}
 			p = 1 - p;
 			if (i > 0) {
 				for (int j = 0; j < ne; j++) {
-					if (dark) {
+					if (dark && checked) {
 						fill(200, 200, 200);
 					} else {
 						fill(col);
@@ -379,12 +404,12 @@ public class CurveAverage extends AbstractPApplet {
 		}
 		Vector3f J = X.cross(I).normalizeLocal();
 		Vector3f K = I.cross(J).normalizeLocal();
-		Vector3f P = A.addScale(r, J);
-		Vector3f Q = B.addScale(r, J);
+		Vector3f P = A.addScaled(r, J);
+		Vector3f Q = B.addScaled(r, J);
 		beginShape(QUAD_STRIP);
 		for (float t = 0; t <= TWO_PI; t += TWO_PI / s) {
-			Vector3f v1 = A.addScale((float) (r * Math.cos(t)), J).addScale((float) (r * Math.sin(t)), K);
-			Vector3f v2 = B.addScale((float) (r * Math.cos(t)), J).addScale((float) (r * Math.sin(t)), K);
+			Vector3f v1 = A.addScaled((float) (r * Math.cos(t)), J).addScaled((float) (r * Math.sin(t)), K);
+			Vector3f v2 = B.addScaled((float) (r * Math.cos(t)), J).addScaled((float) (r * Math.sin(t)), K);
 			vertex(v1.x, v1.y, v1.z);
 			vertex(v2.x, v2.y, v2.z);
 		}
