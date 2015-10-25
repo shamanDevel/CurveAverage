@@ -43,6 +43,7 @@ public class CurveAverage extends AbstractPApplet {
 //float rx=-0.06*TWO_PI, ry=-0.04*TWO_PI;    // view angles manipulated when space pressed but not mouse
 	private float rx = 0, ry = 0;    // view angles manipulated when space pressed but not mouse
 	private boolean animating = false, tracking = false, center = true, gouraud = true;
+	private boolean showCoordinateAxes = false;
 	
 	private boolean interpolateControlCurve = true;
 	private boolean equispacedInterpolation = true;
@@ -76,10 +77,11 @@ public class CurveAverage extends AbstractPApplet {
 
 	String title = "6491 P3 2015: Curve Average", name = "Sebastian Weiß, Can Erdogan",
 			menu = "!:picture, ~:(start/stop)capture, space:rotate, "
-			+ "s/wheel:closer, a:anim \n"
+			+ "s/wheel:closer, a:anim, x:show coordinate axes\n"
 			//+ "i:interpolate control curve, e:equispaced interpolation, m:show medial axis, "
 			+ "e:equispaced interpolation, m:show medial axis, "
-			+ "p:show closest projections, c:show circular arc, n:show net (implies c), t: show inflation tube",
+			+ "p:show closest projections, c:show circular arc, n:show net (implies c)\n"
+			+ "t:show inflation tube, w:wireframed inflation tube",
 			guide = "click'n'drag the control points of the two curves green and blue"; // user's guide
 
 	public static void main(String[] args) {
@@ -169,7 +171,9 @@ public class CurveAverage extends AbstractPApplet {
 		noStroke(); // if you use stroke, the weight (width) of it will be scaled with you scaleing factor
 
 		/// TODO: The visualization of the arrows do not respect cross product rules. 
-		showFrame(-PI / 2, PI / 2, 0, 50); // X-red, Y-green, Z-blue arrows
+		if (showCoordinateAxes) {
+			showFrame(-PI / 2, PI / 2, 0, 50); // X-red, Y-green, Z-blue arrows
+		}
 
 		computeProjectedVectors(); // computes screen projections I, J, K of basis vectors (see bottom of pv3D): used for dragging in viewer's frame    
 
@@ -407,7 +411,7 @@ public class CurveAverage extends AbstractPApplet {
 				medialAxis[i] = p.center;
 				radii[i] = p.radius*2;
 			}
-			showQuads(medialAxis, radii, MEDIAL_AXIS_INFLATION_RESOLUTION, grey80, lightgrey80);
+			showQuads(medialAxis, radii, MEDIAL_AXIS_INFLATION_RESOLUTION, grey80, lightgrey80, showInflationWireframed);
 		}
 	}
 
@@ -487,7 +491,7 @@ public class CurveAverage extends AbstractPApplet {
 	 * @param col1 the first color
 	 * @param col2 the second color
 	 */
-	void showQuads(Vector3f[] C, float[] r, int ne, int col1, int col2) {
+	void showQuads(Vector3f[] C, float[] r, int ne, int col1, int col2, boolean wireframe) {
 		Vector3f[] L = new Vector3f[C.length];
 		L[0] = C[1].subtract(C[0]).crossLocal(Vector3f.UNIT_Z).normalizeLocal();
 		Vector3f[][] P = new Vector3f[2][ne];
@@ -535,12 +539,27 @@ public class CurveAverage extends AbstractPApplet {
 					}
 					dark = !dark;
 					int jp = (j + ne - 1) % ne;
-					beginShape(QUADS);
-					vertex(P[p][jp].mult(0.5f));
-					vertex(P[p][j].mult(0.5f));
-					vertex(P[1 - p][j].mult(0.5f));
-					vertex(P[1 - p][jp].mult(0.5f));
-					endShape(CLOSE);
+					if (wireframe) {
+						noFill();
+						stroke(black);
+						beginShape(LINES);
+						vertex(P[p][jp].mult(0.5f));
+						vertex(P[p][j].mult(0.5f));
+						vertex(P[p][j].mult(0.5f));
+						vertex(P[1 - p][j].mult(0.5f));
+						vertex(P[1 - p][j].mult(0.5f));
+						vertex(P[1 - p][jp].mult(0.5f));
+						vertex(P[1 - p][jp].mult(0.5f));
+						vertex(P[p][jp].mult(0.5f));
+						endShape();
+					} else {
+						beginShape(QUADS);
+						vertex(P[p][jp].mult(0.5f));
+						vertex(P[p][j].mult(0.5f));
+						vertex(P[1 - p][j].mult(0.5f));
+						vertex(P[1 - p][jp].mult(0.5f));
+						endShape(CLOSE);
+					}
 				}
 			}
 		}
@@ -612,6 +631,9 @@ public class CurveAverage extends AbstractPApplet {
 		}
 		if (key == 'w') {
 			showInflationWireframed = !showInflationWireframed;
+		}
+		if (key == 'x') {
+			showCoordinateAxes = !showCoordinateAxes;
 		}
 
 		// if(key=='.') F=P.Picked(); // snaps focus F to the selected vertex of P (easier to rotate and zoom while keeping it in center)
