@@ -53,6 +53,7 @@ public class CurveAverage extends AbstractPApplet {
 	private boolean showNet = false;
 	private boolean showInflation = false;
 	private boolean showInflationWireframed = false;
+	private boolean showHalfInflation = false;
 	private int animDirection;
 	private float animStep;
 	private int animCounter;
@@ -81,7 +82,7 @@ public class CurveAverage extends AbstractPApplet {
 			//+ "i:interpolate control curve, e:equispaced interpolation, m:show medial axis, "
 			+ "e:equispaced interpolation, m:show medial axis, "
 			+ "p:show closest projections, c:show circular arc, n:show net (implies c)\n"
-			+ "t:show inflation tube, w:wireframed inflation tube",
+			+ "t:show inflation tube, w:wireframed inflation tube, h:show only half of the inflation tube",
 			guide = "click'n'drag the control points of the two curves green and blue"; // user's guide
 
 	public static void main(String[] args) {
@@ -411,7 +412,18 @@ public class CurveAverage extends AbstractPApplet {
 				medialAxis[i] = p.center;
 				radii[i] = p.radius*2;
 			}
-			showQuads(medialAxis, radii, MEDIAL_AXIS_INFLATION_RESOLUTION, grey80, lightgrey80, showInflationWireframed);
+			if (showHalfInflation) {
+				Vector3f[] A = new Vector3f[ma.size()];
+				Vector3f[] B = new Vector3f[ma.size()];
+				for (int i=0; i<ma.size(); ++i) {
+					MedialAxisTransform.TracePoint p = ma.get(i);
+					A[i] = Curve.interpolate(curveA, p.projectionOnA[0]);
+					B[i] = Curve.interpolate(curveB, p.projectionOnB[0]);
+				}
+				showHalfQuads(A, B, medialAxis, radii, MEDIAL_AXIS_INFLATION_RESOLUTION/2, grey80, lightgrey80, showInflationWireframed);
+			} else {
+				showQuads(medialAxis, radii, MEDIAL_AXIS_INFLATION_RESOLUTION, grey80, lightgrey80, showInflationWireframed);
+			}
 		}
 	}
 
@@ -532,37 +544,127 @@ public class CurveAverage extends AbstractPApplet {
 			p = 1 - p;
 			if (i > 0) {
 				for (int j = 0; j < ne; j++) {
+					int jp = (j + ne - 1) % ne;
+					Vector3f P1 = P[p][jp].mult(0.5f);
+					Vector3f P2 = P[p][j].mult(0.5f);
+					Vector3f P3 = P[1 - p][j].mult(0.5f);
+					Vector3f P4 = P[1 - p][jp].mult(0.5f);
 					if (dark) {
 						fill(col1);
 					} else {
 						fill(col2);
 					}
 					dark = !dark;
-					int jp = (j + ne - 1) % ne;
 					if (wireframe) {
 						noFill();
 						stroke(black);
 						beginShape(LINES);
-						vertex(P[p][jp].mult(0.5f));
-						vertex(P[p][j].mult(0.5f));
-						vertex(P[p][j].mult(0.5f));
-						vertex(P[1 - p][j].mult(0.5f));
-						vertex(P[1 - p][j].mult(0.5f));
-						vertex(P[1 - p][jp].mult(0.5f));
-						vertex(P[1 - p][jp].mult(0.5f));
-						vertex(P[p][jp].mult(0.5f));
+						vertex(P1);
+						vertex(P2);
+						vertex(P2);
+						vertex(P3);
+						vertex(P3);
+						vertex(P4);
+						vertex(P4);
+						vertex(P1);
 						endShape();
 					} else {
 						beginShape(QUADS);
-						vertex(P[p][jp].mult(0.5f));
-						vertex(P[p][j].mult(0.5f));
-						vertex(P[1 - p][j].mult(0.5f));
-						vertex(P[1 - p][jp].mult(0.5f));
+						vertex(P1);
+						vertex(P2);
+						vertex(P3);
+						vertex(P4);
 						endShape(CLOSE);
 					}
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Show a half quad tube with variable radius.
+	 * the arrays A,B,C and r must be of equal length.
+	 * No parallel transport is used here
+	 * @param A the points on the left side of the tube
+	 * @param B the points on the right side of the tube
+	 * @param C the control points / center points of that tube
+	 * @param r the radius of the tube at the same control point
+	 * @param ne the resolution of the tube
+	 * @param col1 the first color
+	 * @param col2 the second color
+	 */
+	void showHalfQuads(Vector3f[] A, Vector3f[] B, Vector3f[] C, float[] r, int ne, int col1, int col2, boolean wireframe) {
+		boolean dark = true;
+		Vector3f[] CAs = new Vector3f[A.length];
+		Vector3f[] Ns = new Vector3f[A.length];
+		float[] angles = new float[A.length];
+		for (int i = 1; i < C.length - 1; i++) {
+			Vector3f N = C[i+1].subtract(C[i-1]).normalizeLocal();
+			Vector3f CA = A[i].subtract(C[i]).normalizeLocal();
+			Vector3f CB = B[i].subtract(C[i]).normalizeLocal();
+			float angle = CA.angleBetween(CB);
+			//check if we have to flip the angle
+			Vector3f CB1 = rotate(angle, CA, N);
+			Vector3f CB2 = rotate((float) (2*Math.PI - angle), CA, N);
+			float dist1 = CB.distance(CB1);
+			float dist2 = CB.distance(CB2);
+			if (dist2 < dist1) {
+				angle = (float) (2*Math.PI - angle);
+			}
+			//set arrays
+			CAs[i] = CA;
+			Ns[i] = N;
+			angles[i] = angle;
+		}
+		CAs[0] = Vector3f.ZERO;
+		Ns[0] = Vector3f.ZERO;
+		angles[0] = 0;
+		CAs[A.length-1] = Vector3f.ZERO;
+		Ns[A.length-1] = Vector3f.ZERO;
+		angles[A.length-1] = 0;
+		//draw the tube
+		for (int i = 0; i < C.length - 1; i++) {
+			dark = !dark;
+			for (int j = 0; j < ne; j++) {
+				Vector3f P1 = rotate(j*angles[i]/ne, CAs[i].mult(r[i]/2), Ns[i]).add(C[i]);
+				Vector3f P2 = rotate(j*angles[i+1]/ne, CAs[i+1].mult(r[i+1]/2), Ns[i+1]).add(C[i+1]);
+				Vector3f P3 = rotate((j+1)*angles[i+1]/ne, CAs[i+1].mult(r[i+1]/2), Ns[i+1]).add(C[i+1]);
+				Vector3f P4 = rotate((j+1)*angles[i]/ne, CAs[i].mult(r[i]/2), Ns[i]).add(C[i]);
+				if (dark) {
+					fill(col1);
+				} else {
+					fill(col2);
+				}
+				dark = !dark;
+				if (wireframe) {
+					noFill();
+					stroke(black);
+					beginShape(LINES);
+					vertex(P1);
+					vertex(P2);
+					vertex(P2);
+					vertex(P3);
+					vertex(P3);
+					vertex(P4);
+					vertex(P4);
+					vertex(P1);
+					endShape();
+				} else {
+					beginShape(QUADS);
+					vertex(P1);
+					vertex(P2);
+					vertex(P3);
+					vertex(P4);
+					endShape(CLOSE);
+				}
+			}
+		}
+	}
+	private static Vector3f rotate(float angle, Vector3f X, Vector3f N) {
+		Vector3f W = N.mult(N.dot(X));
+		Vector3f U = X.subtract(W);
+		return W.add(U.mult((float) Math.cos(angle)))
+				.subtract(N.cross(U).mult((float) Math.sin(angle)));
 	}
 
 	/**
@@ -631,6 +733,9 @@ public class CurveAverage extends AbstractPApplet {
 		}
 		if (key == 'w') {
 			showInflationWireframed = !showInflationWireframed;
+		}
+		if (key == 'h') {
+			showHalfInflation = !showHalfInflation;
 		}
 		if (key == 'x') {
 			showCoordinateAxes = !showCoordinateAxes;
