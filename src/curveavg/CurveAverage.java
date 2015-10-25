@@ -28,11 +28,15 @@ public class CurveAverage extends AbstractPApplet {
 	private static final int CURVE_INTERPOLATION_SAMPLES = 32;
 	private static final int CURVE_CYLINDER_SAMPLES = 8;
 	private static final float CURVE_CYLINDER_RADIUS = 0.15f * SCALE;
+	private static final float MEDIAL_AXIS_RADIUS = 0.1f * SCALE;
+	private static final float INTERPOLATED_AXIS_RADIUS = 0.07f * SCALE;
 	private static final int MEDIAL_AXIS_CLOSEST_PROJECTIONS_COUNT = 10;
 	private static final int MEDIAL_AXIS_ARC_COUNT = 32;
 	private static final int MEDIAL_AXIS_ARC_RESOLUTION = 32;
 	private static final int MEDIAL_AXIS_NET_COUNT = 7;
 	private static final float MEDIAL_AXIS_NET_RADIUS = 0.02f * SCALE;
+	private static final int MEDIAL_AXIS_ANIM_LENGTH = 4; //two cycles back and forth
+	private static final float MEDIAL_AXIS_ANIM_SPEED = 2; //1/2 seconds per direction
 
 	private float dz = 0; // distance to camera. Manipulated with wheel or when 
 //float rx=-0.06*TWO_PI, ry=-0.04*TWO_PI;    // view angles manipulated when space pressed but not mouse
@@ -41,11 +45,15 @@ public class CurveAverage extends AbstractPApplet {
 	
 	private boolean interpolateControlCurve = true;
 	private boolean equispacedInterpolation = true;
-	private boolean showClosestProjection = true;
+	private boolean showMedialAxis = true;
+	private boolean showClosestProjection = false;
 	private boolean showCircularArcs = true;
 	private boolean showNet = false;
 	private boolean showInflation = false;
 	private boolean showInflationWireframed = false;
+	private int animDirection;
+	private float animStep;
+	private int animCounter;
 	
 	private boolean viewpoint = false;
 	private PImage myFace;
@@ -68,7 +76,7 @@ public class CurveAverage extends AbstractPApplet {
 	String title = "6491 P3 2015: Curve Average", name = "Sebastian Weiß, Can Erdogan",
 			menu = "!:picture, ~:(start/stop)capture, space:rotate, "
 			+ "s/wheel:closer, a:anim \n"
-			+ "i:interpolate control curve, e:equispaced interpolation, "
+			+ "i:interpolate control curve, e:equispaced interpolation, m:show medial axis, "
 			+ "p:show closest projections, c:show circular arc, n: show net, t: show inflation tube",
 			guide = "click'n'drag the control points of the two curves green and blue"; // user's guide
 
@@ -288,11 +296,13 @@ public class CurveAverage extends AbstractPApplet {
 	
 	private void showMedialAxis() {
 		//interpolate center polyline
-		Vector3f[] medialAxis = new Vector3f[ma.size()];
-		for (int i=0; i<ma.size(); ++i) {
-			medialAxis[i] = ma.get(i).center;
+		if (showMedialAxis) {
+			Vector3f[] medialAxis = new Vector3f[ma.size()];
+			for (int i=0; i<ma.size(); ++i) {
+				medialAxis[i] = ma.get(i).center;
+			}
+			showQuads(medialAxis, MEDIAL_AXIS_RADIUS, CURVE_CYLINDER_SAMPLES, black, true);
 		}
-		showQuads(medialAxis, CURVE_CYLINDER_RADIUS/2, CURVE_CYLINDER_SAMPLES, black, true);
 		
 		//show closest projections
 		if (showClosestProjection) {
@@ -332,6 +342,37 @@ public class CurveAverage extends AbstractPApplet {
 				}
 				showQuads(arc, MEDIAL_AXIS_NET_RADIUS, 4, black, false);
 //				drawPoint(ca.getCenter(), yellow);
+			}
+		}
+		//show animation
+		if (animating) {
+			animStep += tpf*animDirection;
+			if (animStep>1) {
+				animDirection = -1;
+				animCounter++;
+				animStep = 1;
+			} else if (animStep<0) {
+				animDirection = 1;
+				animCounter++;
+				animStep = 0;
+			}
+			if (animCounter==MEDIAL_AXIS_ANIM_LENGTH) {
+				animating = false;
+				animStep = 0;
+				animDirection = 1;
+				animCounter = 0;
+			} else {
+				//draw it
+				Vector3f[] interpolatedAxis = new Vector3f[ma.size()];
+				for (int i=0; i<ma.size(); ++i) {
+					MedialAxisTransform.TracePoint p = ma.get(i);
+					Vector3f P = p.center;
+					Vector3f A = Curve.interpolate(curveA, p.projectionOnA[0]);
+					Vector3f B = Curve.interpolate(curveB, p.projectionOnB[0]);
+					CircularArc arc = new CircularArc(P, A, B);
+					interpolatedAxis[i] = arc.getPointOnArc(animStep);
+				}
+				showQuads(interpolatedAxis, INTERPOLATED_AXIS_RADIUS, CURVE_CYLINDER_SAMPLES, red, true);
 			}
 		}
 	}
@@ -438,6 +479,9 @@ public class CurveAverage extends AbstractPApplet {
 			equispacedInterpolation = !equispacedInterpolation;
 			recalculateCurve = true;
 		}
+		if (key == 'm') {
+			showMedialAxis = !showMedialAxis;
+		}
 		if (key == 'p') {
 			showClosestProjection = !showClosestProjection;
 		}
@@ -463,6 +507,9 @@ public class CurveAverage extends AbstractPApplet {
 		}
 		if (key == 'a') {
 			animating = !animating; // toggle animation
+			animDirection = 1;
+			animStep = 0;
+			animCounter = 0;
 		}
 		if (key == ',') {
 			viewpoint = !viewpoint;
