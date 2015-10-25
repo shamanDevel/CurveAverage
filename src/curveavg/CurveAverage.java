@@ -76,8 +76,9 @@ public class CurveAverage extends AbstractPApplet {
 	String title = "6491 P3 2015: Curve Average", name = "Sebastian Weiß, Can Erdogan",
 			menu = "!:picture, ~:(start/stop)capture, space:rotate, "
 			+ "s/wheel:closer, a:anim \n"
-			+ "i:interpolate control curve, e:equispaced interpolation, m:show medial axis, "
-			+ "p:show closest projections, c:show circular arc, n: show net, t: show inflation tube",
+			//+ "i:interpolate control curve, e:equispaced interpolation, m:show medial axis, "
+			+ "e:equispaced interpolation, m:show medial axis, "
+			+ "p:show closest projections, c:show circular arc, n:show net (implies c), t: show inflation tube",
 			guide = "click'n'drag the control points of the two curves green and blue"; // user's guide
 
 	public static void main(String[] args) {
@@ -324,7 +325,7 @@ public class CurveAverage extends AbstractPApplet {
 			}
 		}
 		//show circular arcs
-		if (showCircularArcs) {
+		if (showCircularArcs || showNet) {
 			float step = (float) ma.size() / (float) MEDIAL_AXIS_ARC_COUNT;
 			for (float f=step; f<ma.size(); f+=step) {
 				int i = (int) f;
@@ -342,6 +343,27 @@ public class CurveAverage extends AbstractPApplet {
 				}
 				showQuads(arc, MEDIAL_AXIS_NET_RADIUS, 4, black, false);
 //				drawPoint(ca.getCenter(), yellow);
+			}
+		}
+		//show net
+		if (showNet) {
+			//compute circular arcs
+			CircularArc[] arcs = new CircularArc[ma.size()];
+			for (int i=0; i<ma.size(); ++i) {
+				MedialAxisTransform.TracePoint p = ma.get(i);
+				Vector3f P = p.center;
+				Vector3f A = Curve.interpolate(curveA, p.projectionOnA[0]);
+				Vector3f B = Curve.interpolate(curveB, p.projectionOnB[0]);
+				arcs[i] = new CircularArc(P, A, B);
+			}
+			//sample net curve
+			float step = 1f / MEDIAL_AXIS_NET_COUNT;
+			for (float f=step; f<1; f+=step) {
+				Vector3f[] points = new Vector3f[arcs.length];
+				for (int i=0; i<arcs.length; ++i) {
+					points[i] = arcs[i].getPointOnArc(f);
+				}
+				showQuads(points, MEDIAL_AXIS_NET_RADIUS, 4, black, false);
 			}
 		}
 		//show animation
