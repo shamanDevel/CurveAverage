@@ -74,6 +74,28 @@ public class Curve {
 	}
 	
 	/**
+	 * Approximates the arc length of the interpolated curve given by the control
+	 * points from the given start time to the given end time.
+	 * @param controlPoints the control points of the curve
+	 * @param start the start time
+	 * @param end the end time
+	 * @param numSamples the resultion used to approximate the arc length
+	 * @return the arc length
+	 * @see #interpolate(curveavg.Vector3f[], float) 
+	 */
+	public static float computeArcLength(Vector3f[] controlPoints, float start, float end, int numSamples) {
+		float step = (end-start) / numSamples;
+		float len = 0;
+		Vector3f P1 = interpolate(controlPoints, start);
+		for (int i=1; i<=numSamples; ++i) {
+			Vector3f P2 = interpolate(controlPoints, start + i*step);
+			len += P2.distance(P1);
+			P1 = P2;
+		}
+		return len;
+	}
+	
+	/**
 	 * Produces a equispaced sampling in arc length of the curve interpolation. 
 	 * @param controlPoints the control points
 	 * @param numSamples the number of samples

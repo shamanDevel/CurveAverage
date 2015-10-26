@@ -5,6 +5,7 @@
  */
 package curveavg;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -126,6 +127,93 @@ public class MedialAxisTransform {
 		}
 	}
 
+	/**
+	 * Traces the medial axis of the two curves {@code curveA} and
+	 * {@code curveB}. The medial axis are sampled in that way that the distances
+	 * traveled on the first curve plus the distance traveled on the second curve
+	 * stays constant from sample to sample.
+	 * <br>
+	 * Both curves start and end in the same points ({@code curveA[0]=curveB[0]}
+	 * and {@code curveA[curveA.length-1]=curveB[curveB.length-1]}). The curves
+	 * are interpolated using {@link Curve#interpolate(curveavg.Vector3f[], float)
+	 * }.
+	 * <br>
+	 * The traced points on the medial axis are represented by instances of the
+	 * class {@link TracePoint}. Place the points in the provided output list.
+	 *
+	 * @param curveA the control points of the first curve.
+	 * @param curveB the control points of the second curve
+	 * @param resolution the expected resolution of the target curve
+	 * @param output an empty list, place the traced point in here
+	 */
+	public static void geodesicTrace(Vector3f[] curveA, Vector3f[] curveB,
+			int resolution, List<TracePoint> output) {
+		//trace it normally
+		List<TracePoint> traceList = new ArrayList<>();
+		trace(curveA, curveB, traceList);
+		TracePoint[] trace = traceList.toArray(new TracePoint[traceList.size()]);
+		System.out.println("pre-trace produced "+trace.length+" points");
+		//compute arc lengths of both control curves
+		float lengthA = Curve.computeArcLength(curveA, 0, 1, resolution*4);
+		float lengthB = Curve.computeArcLength(curveB, 0, 1, resolution*4);
+		float lengthSum = lengthA + lengthB;
+		System.out.println("arc length A="+lengthA+" B="+lengthB+" Sum="+lengthSum);
+		//from tracepoint to tracepoint I have to make progress of this value:
+		float targetStepSize = lengthSum / resolution;
+		System.out.println("target step size: "+targetStepSize);
+		//now interpolate traced points to find equispaced points
+		output.clear();
+		output.add(trace[0]);
+		int i=0;
+		while (true) {
+			TracePoint start = output.get(output.size()-1);
+			//find trace point that is behind the target step size
+			int lowerIndex = i;
+			float lowerDist = 0;
+			int upperIndex = -1;
+			float upperDist = 0;
+			for (; i<trace.length; ++i) {
+				TracePoint tp = trace[i];
+				float sa = start.projectionOnA[0];
+				float ea = tp.projectionOnA[0];
+				float sb = start.projectionOnB[0];
+				float eb = tp.projectionOnB[0];
+				float distA = Curve.computeArcLength(curveA, sa, ea, 16);
+				float distB = Curve.computeArcLength(curveB, sb, eb, 16);
+				float dist = distA + distB;
+				if (dist < targetStepSize) {
+					//not reached yet
+					lowerIndex = i;
+					lowerDist = dist;
+				} else {
+					//we passed the next trace point
+					upperIndex = i;
+					upperDist = dist;
+					break;
+				}
+			}
+			if (i==trace.length) {
+				return; //we have exhausted our original trace, terminate
+			}
+			//now interpolate between lower and upper trace point linearly
+			Vector3f current = new Vector3f();
+			current.interpolateLocal(trace[lowerIndex].center, trace[upperIndex].center, (targetStepSize - lowerDist) / (upperDist - lowerDist));
+			//perform snap
+			SnapResult r = snap(curveA, curveB, current);
+			if (r==null) {
+				LOG.log(Level.SEVERE, "unable to snap point {0} on the curve", current);
+				return;
+			}
+			//evaluate real performance
+			float realDist = 
+					Curve.computeArcLength(curveA, start.projectionOnA[0], r.ta, 32)
+					+ Curve.computeArcLength(curveB, start.projectionOnB[0], r.tb, 32);
+			System.out.println("real step size: "+realDist);
+			//add add trace point
+			output.add(new TracePoint(r.center, r.radius, r.ta, r.tb));
+		}
+	}
+	
 	/**
 	 * Traces the medial axis of the two curves {@code curveA} and
 	 * {@code curveB}.

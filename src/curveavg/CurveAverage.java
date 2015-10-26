@@ -30,7 +30,8 @@ public class CurveAverage extends AbstractPApplet {
 	private static final float CURVE_CYLINDER_RADIUS = 0.15f * SCALE;
 	private static final float MEDIAL_AXIS_RADIUS = 0.1f * SCALE;
 	private static final float INTERPOLATED_AXIS_RADIUS = 0.07f * SCALE;
-	private static final int MEDIAL_AXIS_CLOSEST_PROJECTIONS_COUNT = 10;
+	private static final int MEDIAL_AXIS_GEODESIC_SAMPLE_COUNT = 50;
+	private static final int MEDIAL_AXIS_CLOSEST_PROJECTIONS_COUNT = 20;
 	private static final int MEDIAL_AXIS_ARC_COUNT = 32;
 	private static final int MEDIAL_AXIS_ARC_RESOLUTION = 32;
 	private static final int MEDIAL_AXIS_NET_COUNT = 7;
@@ -48,6 +49,7 @@ public class CurveAverage extends AbstractPApplet {
 	private boolean interpolateControlCurve = true;
 	private boolean equispacedInterpolation = true;
 	private boolean showMedialAxis = true;
+	private boolean geodesicMedialAxis = false;
 	private boolean showClosestProjection = false;
 	private boolean showCircularArcs = true;
 	private boolean showNet = false;
@@ -80,7 +82,7 @@ public class CurveAverage extends AbstractPApplet {
 			menu = "!:picture, ~:(start/stop)capture, space:rotate, "
 			+ "s/wheel:closer, a:anim, x:show coordinate axes\n"
 			//+ "i:interpolate control curve, e:equispaced interpolation, m:show medial axis, "
-			+ "e:equispaced interpolation, m:show medial axis, "
+			+ "e:equispaced interpolation, m:show medial axis, g:geodesic sampling of the MA, "
 			+ "p:show closest projections, c:show circular arc, n:show net (implies c)\n"
 			+ "t:show inflation tube, w:wireframed inflation tube, h:show only half of the inflation tube",
 			guide = "click'n'drag the control points of the two curves green and blue"; // user's guide
@@ -281,7 +283,11 @@ public class CurveAverage extends AbstractPApplet {
 			}
 			//trace medial axis
 			ma.clear();
-			MedialAxisTransform.trace(curveA, curveB, ma);
+			if (geodesicMedialAxis) {
+				MedialAxisTransform.geodesicTrace(curveA, curveB, MEDIAL_AXIS_GEODESIC_SAMPLE_COUNT, ma);
+			} else {
+				MedialAxisTransform.trace(curveA, curveB, ma);
+			}
 		}
 		//show control curves
 		if (interpolateControlCurve) {
@@ -313,7 +319,7 @@ public class CurveAverage extends AbstractPApplet {
 		
 		//show closest projections
 		if (showClosestProjection) {
-			float step = (float) ma.size() / (float) MEDIAL_AXIS_CLOSEST_PROJECTIONS_COUNT;
+			int step = (int) (ma.size() / (float) MEDIAL_AXIS_CLOSEST_PROJECTIONS_COUNT);
 			for (float f=step; f<ma.size(); f+=step) {
 				int i = (int) f;
 				MedialAxisTransform.TracePoint p = ma.get(i);
@@ -321,18 +327,18 @@ public class CurveAverage extends AbstractPApplet {
 				for (float t : p.projectionOnA) {
 					Vector3f proj = Curve.interpolate(curveA, t);
 					drawPoint(proj, black);
-					showCylinder(p.center, proj, CURVE_CYLINDER_RADIUS / 4, CURVE_CYLINDER_SAMPLES);
+					showCylinder(p.center, proj, MEDIAL_AXIS_NET_RADIUS, CURVE_CYLINDER_SAMPLES);
 				}
 				for (float t : p.projectionOnB) {
 					Vector3f proj = Curve.interpolate(curveB, t);
 					drawPoint(proj, black);
-					showCylinder(p.center, proj, CURVE_CYLINDER_RADIUS / 4, CURVE_CYLINDER_SAMPLES);
+					showCylinder(p.center, proj, MEDIAL_AXIS_NET_RADIUS, CURVE_CYLINDER_SAMPLES);
 				}
 			}
 		}
 		//show circular arcs
 		if (showCircularArcs || showNet) {
-			float step = (float) ma.size() / (float) MEDIAL_AXIS_ARC_COUNT;
+			int step = (int) (ma.size() / (float) MEDIAL_AXIS_ARC_COUNT);
 			for (float f=step; f<ma.size(); f+=step) {
 				int i = (int) f;
 				MedialAxisTransform.TracePoint p = ma.get(i);
@@ -714,6 +720,10 @@ public class CurveAverage extends AbstractPApplet {
 		}
 		if (key == 'e') {
 			equispacedInterpolation = !equispacedInterpolation;
+			recalculateCurve = true;
+		}
+		if (key == 'g') {
+			geodesicMedialAxis = !geodesicMedialAxis;
 			recalculateCurve = true;
 		}
 		if (key == 'm') {
