@@ -49,7 +49,7 @@ public class CurveAverage extends AbstractPApplet {
 	private boolean interpolateControlCurve = true;
 	private boolean equispacedInterpolation = true;
 	private boolean showMedialAxis = true;
-	private boolean geodesicMedialAxis = false;
+	private boolean geodesicMedialAxis = true;
 	private boolean showClosestProjection = false;
 	private boolean showCircularArcs = true;
 	private boolean showNet = false;
@@ -607,16 +607,8 @@ public class CurveAverage extends AbstractPApplet {
 		for (int i = 1; i < C.length - 1; i++) {
 			Vector3f N = C[i+1].subtract(C[i-1]).normalizeLocal();
 			Vector3f CA = A[i].subtract(C[i]).normalizeLocal();
-			Vector3f CB = B[i].subtract(C[i]).normalizeLocal();
-			float angle = CA.angleBetween(CB);
-			//check if we have to flip the angle
-			Vector3f CB1 = rotate(angle, CA, N);
-			Vector3f CB2 = rotate((float) (2*Math.PI - angle), CA, N);
-			float dist1 = CB.distance(CB1);
-			float dist2 = CB.distance(CB2);
-			if (dist2 < dist1) {
-				angle = (float) (2*Math.PI - angle);
-			}
+			//if the medial axis was traced correctly, the angle should always be 180°
+			float angle = (float) Math.PI;
 			//set arrays
 			CAs[i] = CA;
 			Ns[i] = N;
