@@ -9,6 +9,7 @@ import processing.core.*;
 import processing.event.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,7 +50,7 @@ public class CurveAverage extends AbstractPApplet {
 	private boolean interpolateControlCurve = true;
 	private boolean equispacedInterpolation = true;
 	private boolean showMedialAxis = true;
-	private boolean geodesicMedialAxis = true;
+	private boolean geodesicMedialAxis = false;
 	private boolean showClosestProjection = false;
 	private boolean showCircularArcs = true;
 	private boolean showNet = false;
@@ -127,6 +128,9 @@ public class CurveAverage extends AbstractPApplet {
 			curveB[i] = controlPoints[controlPoints.length - i];
 		}
 		recalculateCurve = true;
+		
+		//test
+//		spiralControlPoints();
 
 		rx += 0.0001f;
 		ry += 0.0001f;
@@ -143,6 +147,23 @@ public class CurveAverage extends AbstractPApplet {
 		 new Vector3f(-70, -30, -70)
 		 };
 		 */
+	}
+	private void spiralControlPoints() {
+		curveA[0].set(0, 0, -50);
+		curveA[5].set(0, 0, 50);
+		curveA[1].set(-19, 0, -30);
+		curveA[2].set(-20, 0, -10);
+		curveA[3].set(-20, 0, 10);
+		curveA[4].set(-19, 0, 30);
+		curveB[1].set(19, 0, -30);
+		curveB[2].set(20, 0, -10);
+		curveB[3].set(20, 0, 10);
+		curveB[4].set(19, 0, 30);
+		//add noise
+		Random rand = new Random();
+		for (int i=0; i<controlPoints.length; ++i) {
+			controlPoints[i].addLocal(rand.nextFloat()*0.0001f, rand.nextFloat()*0.0001f, rand.nextFloat()*0.0001f);
+		}
 	}
 
 	public void drawPoint(Vector3f P, int color) {
@@ -424,7 +445,7 @@ public class CurveAverage extends AbstractPApplet {
 			}
 			showInflation(A, B, medialAxis, radii, 
 					showHalfInflation ? MEDIAL_AXIS_INFLATION_RESOLUTION/2 : MEDIAL_AXIS_INFLATION_RESOLUTION, 
-					grey80, lightgrey80, showInflationWireframed, showHalfInflation);
+					grey80, lightgrey80, showInflationWireframed, showHalfInflation, true);
 		}
 	}
 
@@ -594,16 +615,19 @@ public class CurveAverage extends AbstractPApplet {
 	 * @param col1 the first color
 	 * @param col2 the second color
 	 */
-	void showInflation(Vector3f[] A, Vector3f[] B, Vector3f[] C, float[] r, int ne, int col1, int col2, boolean wireframe, boolean half) {
+	void showInflation(Vector3f[] A, Vector3f[] B, Vector3f[] C, float[] r, int ne, int col1, int col2, 
+			boolean wireframe, boolean half, boolean parallelTransport) {
 		boolean dark = true;
-		Vector3f[] CAs = new Vector3f[A.length];
-		Vector3f[] Ns = new Vector3f[A.length];
-		float[] angles = new float[A.length];
+		Vector3f[] CAs = new Vector3f[A.length]; //rotation axis
+		Vector3f[] Ns = new Vector3f[A.length]; //rotation normals
+		float[] angles = new float[A.length]; //start angles
 		for (int i = 1; i < C.length - 1; i++) {
 			Vector3f N = C[i+1].subtract(C[i-1]).normalizeLocal();
 			Vector3f CA = A[i].subtract(C[i]).normalizeLocal();
-			//if the medial axis was traced correctly, the angle should always be 180°
-			float angle = half ? (float) Math.PI : (float) (2*Math.PI);
+			float angle = 0;
+			if (parallelTransport) {
+				//set start angle according to parallel transport rules
+			}
 			//set arrays
 			CAs[i] = CA;
 			Ns[i] = N;
@@ -616,13 +640,14 @@ public class CurveAverage extends AbstractPApplet {
 		Ns[A.length-1] = Vector3f.ZERO;
 		angles[A.length-1] = 0;
 		//draw the tube
+		float step = (float) ((half ? Math.PI : 2*Math.PI) / ne); //if the medial axis was traced correctly, the angle should always be 180°
 		for (int i = 0; i < C.length - 1; i++) {
 			dark = !dark;
 			for (int j = 0; j < ne; j++) {
-				Vector3f P1 = rotate(j*angles[i]/ne, CAs[i].mult(r[i]/2), Ns[i]).add(C[i]);
-				Vector3f P2 = rotate(j*angles[i+1]/ne, CAs[i+1].mult(r[i+1]/2), Ns[i+1]).add(C[i+1]);
-				Vector3f P3 = rotate((j+1)*angles[i+1]/ne, CAs[i+1].mult(r[i+1]/2), Ns[i+1]).add(C[i+1]);
-				Vector3f P4 = rotate((j+1)*angles[i]/ne, CAs[i].mult(r[i]/2), Ns[i]).add(C[i]);
+				Vector3f P1 = rotate(j*step + angles[i], CAs[i].mult(r[i]/2), Ns[i]).add(C[i]);
+				Vector3f P2 = rotate(j*step + angles[i+1], CAs[i+1].mult(r[i+1]/2), Ns[i+1]).add(C[i+1]);
+				Vector3f P3 = rotate((j+1)*step + angles[i+1], CAs[i+1].mult(r[i+1]/2), Ns[i+1]).add(C[i+1]);
+				Vector3f P4 = rotate((j+1)*step + angles[i], CAs[i].mult(r[i]/2), Ns[i]).add(C[i]);
 				if (dark) {
 					fill(col1);
 				} else {
@@ -654,77 +679,6 @@ public class CurveAverage extends AbstractPApplet {
 		}
 	}
 	
-	/**
-	 * Show a half quad tube with variable radius.
-	 * the arrays A,B,C and r must be of equal length.
-	 * No parallel transport is used here
-	 * @param A the points on the left side of the tube
-	 * @param B the points on the right side of the tube
-	 * @param C the control points / center points of that tube
-	 * @param r the radius of the tube at the same control point
-	 * @param ne the resolution of the tube
-	 * @param col1 the first color
-	 * @param col2 the second color
-	 */
-	void showHalfQuads(Vector3f[] A, Vector3f[] B, Vector3f[] C, float[] r, int ne, int col1, int col2, boolean wireframe) {
-		boolean dark = true;
-		Vector3f[] CAs = new Vector3f[A.length];
-		Vector3f[] Ns = new Vector3f[A.length];
-		float[] angles = new float[A.length];
-		for (int i = 1; i < C.length - 1; i++) {
-			Vector3f N = C[i+1].subtract(C[i-1]).normalizeLocal();
-			Vector3f CA = A[i].subtract(C[i]).normalizeLocal();
-			//if the medial axis was traced correctly, the angle should always be 180°
-			float angle = (float) Math.PI;
-			//set arrays
-			CAs[i] = CA;
-			Ns[i] = N;
-			angles[i] = angle;
-		}
-		CAs[0] = Vector3f.ZERO;
-		Ns[0] = Vector3f.ZERO;
-		angles[0] = 0;
-		CAs[A.length-1] = Vector3f.ZERO;
-		Ns[A.length-1] = Vector3f.ZERO;
-		angles[A.length-1] = 0;
-		//draw the tube
-		for (int i = 0; i < C.length - 1; i++) {
-			dark = !dark;
-			for (int j = 0; j < ne; j++) {
-				Vector3f P1 = rotate(j*angles[i]/ne, CAs[i].mult(r[i]/2), Ns[i]).add(C[i]);
-				Vector3f P2 = rotate(j*angles[i+1]/ne, CAs[i+1].mult(r[i+1]/2), Ns[i+1]).add(C[i+1]);
-				Vector3f P3 = rotate((j+1)*angles[i+1]/ne, CAs[i+1].mult(r[i+1]/2), Ns[i+1]).add(C[i+1]);
-				Vector3f P4 = rotate((j+1)*angles[i]/ne, CAs[i].mult(r[i]/2), Ns[i]).add(C[i]);
-				if (dark) {
-					fill(col1);
-				} else {
-					fill(col2);
-				}
-				dark = !dark;
-				if (wireframe) {
-					noFill();
-					stroke(black);
-					beginShape(LINES);
-					vertex(P1);
-					vertex(P2);
-					vertex(P2);
-					vertex(P3);
-					vertex(P3);
-					vertex(P4);
-					vertex(P4);
-					vertex(P1);
-					endShape();
-				} else {
-					beginShape(QUADS);
-					vertex(P1);
-					vertex(P2);
-					vertex(P3);
-					vertex(P4);
-					endShape(CLOSE);
-				}
-			}
-		}
-	}
 	private static Vector3f rotate(float angle, Vector3f X, Vector3f N) {
 		Vector3f W = N.mult(N.dot(X));
 		Vector3f U = X.subtract(W);
