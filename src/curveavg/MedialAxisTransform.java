@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
 import org.apache.commons.math3.analysis.solvers.NewtonRaphsonSolver;
@@ -210,7 +211,12 @@ public class MedialAxisTransform {
 					+ Curve.computeArcLength(curveB, start.projectionOnB[0], r.tb, 32);
 			System.out.println("real step size: "+realDist);
 			//add add trace point
-			output.add(new TracePoint(r.center, r.radius, r.ta, r.tb));
+			TracePoint tp = new TracePoint(r.center, r.radius, r.ta, r.tb);
+			output.add(tp);
+			//insert into trace list
+			//TODO: check if this works all the time and produces the correct result
+			//my hope is that this solves the endless-loop issue happening in some cases.
+			trace = ArrayUtils.add(trace, upperIndex, tp);
 		}
 	}
 	
