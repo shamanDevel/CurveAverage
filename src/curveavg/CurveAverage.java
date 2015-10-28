@@ -445,7 +445,7 @@ public class CurveAverage extends AbstractPApplet {
 			}
 			showInflation(A, B, medialAxis, radii, 
 					showHalfInflation ? MEDIAL_AXIS_INFLATION_RESOLUTION/2 : MEDIAL_AXIS_INFLATION_RESOLUTION, 
-					grey80, lightgrey80, showInflationWireframed, showHalfInflation, true);
+					grey80, lightgrey80, showInflationWireframed, showHalfInflation, !showHalfInflation);
 		}
 	}
 
@@ -621,21 +621,41 @@ public class CurveAverage extends AbstractPApplet {
 		Vector3f[] CAs = new Vector3f[A.length]; //rotation axis
 		Vector3f[] Ns = new Vector3f[A.length]; //rotation normals
 		float[] angles = new float[A.length]; //start angles
+		CAs[0] = Vector3f.ZERO;
+		Ns[0] = Vector3f.ZERO;
+		angles[0] = 0;
 		for (int i = 1; i < C.length - 1; i++) {
 			Vector3f N = C[i+1].subtract(C[i-1]).normalizeLocal();
 			Vector3f CA = A[i].subtract(C[i]).normalizeLocal();
 			float angle = 0;
 			if (parallelTransport) {
 				//set start angle according to parallel transport rules
+				Vector3f CAp = CAs[i-1];
+				if (CAp.equals(Vector3f.ZERO)) {
+					//first real vector, I can choose any angle, so keep 0°
+				} else {
+					Vector3f reference = rotate(angles[i-1], CAp, Ns[i-1]);
+					//compute the angle so that CA°angle lies in the plane N x reference
+					Vector3f refPrime = reference.normalize();
+					Vector3f NPrime = N.cross(refPrime);
+					Vector3f CAPrime = CA.normalize();
+					float x = CAPrime.dot(NPrime);
+					float y = CAPrime.dot(refPrime);
+					Vector3f CAproj = new Vector3f();
+					CAproj.addScaledLocal(x, NPrime);
+					CAproj.addScaledLocal(y, refPrime);
+					CAproj.normalizeLocal();
+					angle = Math.abs(refPrime.angleBetween(CAproj));
+					if (x<0) {
+						angle = -angle;
+					}
+				}
 			}
 			//set arrays
 			CAs[i] = CA;
 			Ns[i] = N;
 			angles[i] = angle;
 		}
-		CAs[0] = Vector3f.ZERO;
-		Ns[0] = Vector3f.ZERO;
-		angles[0] = 0;
 		CAs[A.length-1] = Vector3f.ZERO;
 		Ns[A.length-1] = Vector3f.ZERO;
 		angles[A.length-1] = 0;
@@ -678,7 +698,6 @@ public class CurveAverage extends AbstractPApplet {
 			}
 		}
 	}
-	
 	private static Vector3f rotate(float angle, Vector3f X, Vector3f N) {
 		Vector3f W = N.mult(N.dot(X));
 		Vector3f U = X.subtract(W);
