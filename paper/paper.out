@@ -1,0 +1,12 @@
+\BOOKMARK [1][-]{section.1}{Objective}{}
+\BOOKMARK [1][-]{section.2}{Input}{}
+\BOOKMARK [1][-]{section.3}{Overview}{}
+\BOOKMARK [1][-]{section.4}{Curve Representation}{}
+\BOOKMARK [2][-]{subsection.4.1}{Quadratic Hermite Spline}{section.4}
+\BOOKMARK [2][-]{subsection.4.2}{Cubic Hermite Spline}{section.4}
+\BOOKMARK [1][-]{section.5}{Average Curve Computation}{}
+\BOOKMARK [2][-]{subsection.5.1}{Distance functions}{section.5}
+\BOOKMARK [2][-]{subsection.5.2}{Average Distance Sampling}{section.5}
+\BOOKMARK [1][-]{section.6}{Visualization Algorithms}{}
+\BOOKMARK [1][-]{section.7}{Results}{}
+\BOOKMARK [1][-]{section.8}{Future work}{}
