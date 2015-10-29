@@ -33,7 +33,7 @@ public class CurveAverage extends AbstractPApplet {
 	private static final float INTERPOLATED_AXIS_RADIUS = 0.07f * SCALE;
 	private static final int MEDIAL_AXIS_GEODESIC_SAMPLE_COUNT = 50;
 	private static final int MEDIAL_AXIS_CLOSEST_PROJECTIONS_COUNT = 20;
-	private static final int MEDIAL_AXIS_ARC_COUNT = 8;
+	private static final int MEDIAL_AXIS_ARC_COUNT = 32;
 	private static final int MEDIAL_AXIS_ARC_RESOLUTION = 32;
 	private static final int MEDIAL_AXIS_NET_COUNT = 7;
 	private static final float MEDIAL_AXIS_NET_RADIUS = 0.02f * SCALE;
@@ -149,21 +149,32 @@ public class CurveAverage extends AbstractPApplet {
 		 */
 	}
 	private void spiralControlPoints() {
-		curveA[0].set(0, 0, -50);
-		curveA[5].set(0, 0, 50);
-                curveB[0].set(0, 0, -50);
-		curveB[5].set(0, 0, 50);
-		curveA[1].set(-19, 0.01f, -30);
-		curveA[2].set(-20, 0, -10);
-		curveA[3].set(-20, 0.01f, 10);
-		curveA[4].set(-19, 0, 30);
-		curveB[1].set(19, 0.01f, -30);
-		curveB[2].set(20, 0, -10);
-		curveB[3].set(20, 0.01f, 10);
-		curveB[4].set(19, 0, 30);
+		curveA[0].set(0, 0, -140);
+		curveA[5].set(0, 0, 145);
+        curveB[0].set(0, 0, -140); //they share the same instance!
+		curveB[5].set(0, 0, 145);
+		curveA[1].set(-19, 0.01f, -80);
+		curveA[2].set(-20, 0, -30);
+		curveA[3].set(-20, 0.01f, 30);
+		curveA[4].set(-19, 0, 80);
+		curveB[1].set(19, 0.01f, -80);
+		curveB[2].set(20, 0, -30);
+		curveB[3].set(20, 0.01f, 30);
+		curveB[4].set(19, 0, 80);
+		//rotate
+		for (int i=1; i<=4; ++i) {
+			float angle = (float) (i * Math.PI / 2);
+			curveA[i].set(
+					(float) Math.sin(angle)*curveA[i].x + (float) Math.cos(angle)*curveA[i].y,
+					(float) Math.cos(angle)*curveA[i].x - (float) Math.sin(angle)*curveA[i].y,
+					curveA[i].z);
+			curveB[i].set(
+					-(float) Math.sin(angle+Math.PI)*curveB[i].x - (float) Math.cos(angle+Math.PI)*curveB[i].y,
+					-(float) Math.cos(angle+Math.PI)*curveB[i].x + (float) Math.sin(angle+Math.PI)*curveB[i].y,
+					curveB[i].z);
+		}
+		
 		//add noise
-                
-                // 
 		Random rand = new Random();
                 float randomness = 0.1f;
 		for (int i=0; i<curveA.length; ++i) {
