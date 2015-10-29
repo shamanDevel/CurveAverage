@@ -23,7 +23,9 @@ import org.apache.commons.math3.exception.TooManyEvaluationsException;
  */
 public class MedialAxisTransform {
 	private static final Logger LOG = Logger.getLogger(MedialAxisTransform.class.getName());
-
+        private static final float STEPSIZE = 2f;
+        private static final int MAX_MA_ITERATION = 500;
+        
 	public static class Line {
 
 		public Vector3f p;
@@ -245,7 +247,7 @@ public class MedialAxisTransform {
 			LOG.log(Level.SEVERE, "exception while tracing medial axis", e);
 		}
 		long time2 = System.currentTimeMillis();
-		LOG.log(Level.INFO, "tracing medial axis within {0} seconds", ((time2-time1)/1000f));
+		LOG.log(Level.INFO, "tracing medial axis with {0} points within {1} seconds", new Object[]{output.size(), (time2-time1)/1000f});
 	}
 	
 	public static void trace1(Vector3f[] curveA, Vector3f[] curveB, List<MedialAxisTransform.TracePoint> output) {
@@ -371,7 +373,7 @@ public class MedialAxisTransform {
 		float ta = 0;
 		float tb = 0;
 		//now run the tracing
-		float stepSize = 2f;
+                int numIters = 0;
 		while (true) {
 			//compute tangents numerically
 			float tangentStepSize = 0.001f;
@@ -381,12 +383,13 @@ public class MedialAxisTransform {
 					.subtract(Curve.interpolate(curveB, tb));
 			tA.normalizeLocal();
 			tB.normalizeLocal();
-			Vector3f t = tA.add(tB).multLocal(stepSize);
+			Vector3f t = tA.add(tB).multLocal(STEPSIZE);
 			//move current position along this tangent
 			current = current.add(t);
 			//find closest projections
 			SnapResult r = snap(curveA, curveB, current);
 			if (r == null) {
+                            LOG.severe("snap failed");
 				return false;
 			}
 			float nextTA = r.ta;
@@ -394,18 +397,24 @@ public class MedialAxisTransform {
 			current = r.center;
 //			System.out.println("current="+current+", tA="+nextTA+", tB="+nextTB);
 			if (nextTA >= 1 || nextTB >= 1) {
+                                LOG.info("reached end");
 				return true; //end reached
 			}
 			if (nextTA < ta || nextTB < tb) {
 				//use this as a stop condition
-				return true;
-//				LOG.severe("going backwards!!!");
+				
+				LOG.severe("going backwards!!!");
+                                return true;
 //				return false;
 			}
 			//update ta, tb, add trace point
 			ta = nextTA;
 			tb = nextTB;
 			output.add(new MedialAxisTransform.TracePoint(current, r.radius, ta, tb));
+                        if(numIters++ > MAX_MA_ITERATION) {
+                                LOG.severe("Reached maximum # iters");                            
+                                return true;
+                        }
 		}
 	}
 	private static class SnapResult {
@@ -744,14 +753,40 @@ public class MedialAxisTransform {
 	 */
 	public static SolverResult solveCubic(float a, float b, float c, float d) {
 
-		// Solve quadratic
-		if (Math.abs(d) < 1e-5) {
-			assert (false);
-		}
-
+            
 		SolverResult res = new SolverResult();
 		res.re = new float[3];
 		res.im = new float[3];
+                
+                // The problem is in the form of ax^3 + bx^2 + cx = 0
+		// Solve quadratic
+		if (Math.abs(d) < 1e-3) {
+                    
+                    // One of the roots is 0.
+                    res.re[0] = 0.0f; 
+                    res.im[0] = 0.0f;
+                    
+                    // Solve the quadratic equation
+                    res.re[1] = res.re[2] = (-b / (2.0f * a));
+                    float discr = b*b - 4.0f*a*c;
+                    if(discr < 0) {
+                        float temp = (float) (Math.sqrt(-discr) / (2.0f * a));
+                        res.im[1] = temp;
+                        res.im[2] = -temp;
+                    }
+                    else {
+                        float temp = (float) (Math.sqrt(discr) / (2.0f * a));
+                        res.im[1] = res.im[2] = 0.0f;
+                        res.re[1] += temp;
+                        res.re[2] -= temp;
+                    }
+                    System.out.println("a: " + a + ", b: " + b + ", c: " + c + ", d: " + d);
+                    System.out.println("results: (" + res.re[0] + ", " + res.im[0] + "i), (" + res.re[1] + ", " + res.im[1] + "i), (" + res.re[2] + ", " + res.im[2] + "i)");
+                    LOG.severe("Given system is not a general cubic - may cause problems");                    
+                    return res;
+                    // assert (false);
+		}
+
 		b /= a;
 		c /= a;
 		d /= a;

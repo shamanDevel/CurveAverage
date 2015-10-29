@@ -33,7 +33,7 @@ public class CurveAverage extends AbstractPApplet {
 	private static final float INTERPOLATED_AXIS_RADIUS = 0.07f * SCALE;
 	private static final int MEDIAL_AXIS_GEODESIC_SAMPLE_COUNT = 50;
 	private static final int MEDIAL_AXIS_CLOSEST_PROJECTIONS_COUNT = 20;
-	private static final int MEDIAL_AXIS_ARC_COUNT = 32;
+	private static final int MEDIAL_AXIS_ARC_COUNT = 8;
 	private static final int MEDIAL_AXIS_ARC_RESOLUTION = 32;
 	private static final int MEDIAL_AXIS_NET_COUNT = 7;
 	private static final float MEDIAL_AXIS_NET_RADIUS = 0.02f * SCALE;
@@ -130,7 +130,7 @@ public class CurveAverage extends AbstractPApplet {
 		recalculateCurve = true;
 		
 		//test
-//		spiralControlPoints();
+		spiralControlPoints();
 
 		rx += 0.0001f;
 		ry += 0.0001f;
@@ -151,18 +151,34 @@ public class CurveAverage extends AbstractPApplet {
 	private void spiralControlPoints() {
 		curveA[0].set(0, 0, -50);
 		curveA[5].set(0, 0, 50);
-		curveA[1].set(-19, 0, -30);
+                curveB[0].set(0, 0, -50);
+		curveB[5].set(0, 0, 50);
+		curveA[1].set(-19, 0.01f, -30);
 		curveA[2].set(-20, 0, -10);
-		curveA[3].set(-20, 0, 10);
+		curveA[3].set(-20, 0.01f, 10);
 		curveA[4].set(-19, 0, 30);
-		curveB[1].set(19, 0, -30);
+		curveB[1].set(19, 0.01f, -30);
 		curveB[2].set(20, 0, -10);
-		curveB[3].set(20, 0, 10);
+		curveB[3].set(20, 0.01f, 10);
 		curveB[4].set(19, 0, 30);
 		//add noise
+                
+                // 
 		Random rand = new Random();
-		for (int i=0; i<controlPoints.length; ++i) {
-			controlPoints[i].addLocal(rand.nextFloat()*0.0001f, rand.nextFloat()*0.0001f, rand.nextFloat()*0.0001f);
+                float randomness = 0.1f;
+		for (int i=0; i<curveA.length; ++i) {
+			curveA[i].addLocal(rand.nextFloat()*randomness, rand.nextFloat()*randomness, rand.nextFloat()*randomness);
+		}
+                for (int i=0; i<curveB.length; ++i) {
+			curveB[i].addLocal(rand.nextFloat()*randomness, rand.nextFloat()*randomness, rand.nextFloat()*randomness);
+		}
+                curveB[0] = curveA[0];
+                curveB[5] = curveA[5];
+                for (int i = 0; i < curveA.length; ++i) {
+                    controlPoints[i] = curveA[i];
+		}
+		for (int i = 1; i < curveB.length; ++i) {
+                    controlPoints[controlPoints.length - i] = curveB[i];
 		}
 	}
 
@@ -310,6 +326,7 @@ public class CurveAverage extends AbstractPApplet {
 				MedialAxisTransform.trace(curveA, curveB, ma);
 			}
 		}
+
 		//show control curves
 		if (interpolateControlCurve) {
 			showQuads(samplesA, CURVE_CYLINDER_RADIUS, CURVE_CYLINDER_SAMPLES, blue, true);
@@ -324,11 +341,14 @@ public class CurveAverage extends AbstractPApplet {
 				showCylinder(curveB[i - 1], curveB[i], CURVE_CYLINDER_RADIUS / 3, CURVE_CYLINDER_SAMPLES);
 			}
 		}
+                
 		//show medial axis
 		showMedialAxis();
+
 	}
 	
 	private void showMedialAxis() {
+            
 		//interpolate center polyline
 		if (showMedialAxis) {
 			Vector3f[] medialAxis = new Vector3f[ma.size()];
@@ -337,7 +357,7 @@ public class CurveAverage extends AbstractPApplet {
 			}
 			showQuads(medialAxis, MEDIAL_AXIS_RADIUS, CURVE_CYLINDER_SAMPLES, black, true);
 		}
-		
+	
 		//show closest projections
 		if (showClosestProjection) {
 			int step = (int) (ma.size() / (float) MEDIAL_AXIS_CLOSEST_PROJECTIONS_COUNT);
@@ -357,27 +377,36 @@ public class CurveAverage extends AbstractPApplet {
 				}
 			}
 		}
-		//show circular arcs
+        
+                //show circular arcs
 		if (showCircularArcs || showNet) {
+                        assert(ma.size() >= MEDIAL_AXIS_ARC_COUNT);     // to ensure the division below makes sense and step is not 0
 			int step = (int) (ma.size() / (float) MEDIAL_AXIS_ARC_COUNT);
+            
 			for (float f=step; f<ma.size(); f+=step) {
+
 				int i = (int) f;
 				MedialAxisTransform.TracePoint p = ma.get(i);
 				Vector3f P = p.center;
 				Vector3f A = Curve.interpolate(curveA, p.projectionOnA[0]);
 				Vector3f B = Curve.interpolate(curveB, p.projectionOnB[0]);
+
 				//compute arc
 				CircularArc ca = new CircularArc(P, A, B);
+
 				//draw arc
 				Vector3f[] arc = new Vector3f[MEDIAL_AXIS_ARC_RESOLUTION];
 				for (int j=0; j<arc.length; ++j) {
 					float t = j / (float) (arc.length-1);
 					arc[j] = ca.getPointOnArc(t);
 				}
+
 				showQuads(arc, MEDIAL_AXIS_NET_RADIUS, 4, black, false);
+
 //				drawPoint(ca.getCenter(), yellow);
 			}
 		}
+            
 		//show net
 		if (showNet) {
 			//compute circular arcs
@@ -399,6 +428,7 @@ public class CurveAverage extends AbstractPApplet {
 				showQuads(points, MEDIAL_AXIS_NET_RADIUS, 4, black, false);
 			}
 		}
+            
 		//show animation
 		if (animating) {
 			animStep += tpf*animDirection*MEDIAL_AXIS_ANIM_SPEED;
@@ -430,6 +460,7 @@ public class CurveAverage extends AbstractPApplet {
 				showQuads(interpolatedAxis, INTERPOLATED_AXIS_RADIUS, CURVE_CYLINDER_SAMPLES, red, true);
 			}
 		}
+            
 		//show inflation
 		if (showInflation) {
 			Vector3f[] medialAxis = new Vector3f[ma.size()];
@@ -447,6 +478,7 @@ public class CurveAverage extends AbstractPApplet {
 					showHalfInflation ? MEDIAL_AXIS_INFLATION_RESOLUTION/2 : MEDIAL_AXIS_INFLATION_RESOLUTION, 
 					grey80, lightgrey80, showInflationWireframed, showHalfInflation, !showHalfInflation);
 		}
+            
 	}
 
 	/**
