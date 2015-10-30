@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (MiKTeX 2.9) (preloaded format=pdflatex 2013.11.9)  29 OCT 2015 21:09
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (MiKTeX 2.9) (preloaded format=pdflatex 2013.11.9)  30 OCT 2015 10:10
 entering extended mode
 **paper.tex
 ("C:\Users\Sebastian\Documents\GDrive\Studium\Fall 15 Georgia Tech\Computer Graphics\CurveAverage\paper\paper.tex"
@@ -961,7 +961,7 @@ LaTeX Info: Redefining \nameref on input line 28.
 ("C:\Users\Sebastian\Documents\GDrive\Studium\Fall 15 Georgia Tech\Computer Graphics\CurveAverage\paper\paper.out")
 \@outlinefile=\write4
 
-<pic.jpg, id=66, 99.572pt x 79.8985pt>
+<pic.jpg, id=78, 99.572pt x 79.8985pt>
 File: pic.jpg Graphic file (type jpg)
  <use pic.jpg>
 Package pdftex.def Info: pic.jpg used on input line 42.
@@ -1037,66 +1037,97 @@ m/n/9 3\OML/cmm/m/it/9 t[] \OT1/cmr/m/n/9 + 1)\OML/cmm/m/it/9 X[] \OT1/cmr/m/n/9
 []
  []
 
-<images/NoGeodesicSampling.png, id=67, 287.8755pt x 299.31825pt>
+<images/NoGeodesicSampling.png, id=79, 287.8755pt x 299.31825pt>
 File: images/NoGeodesicSampling.png Graphic file (type png)
  <use images/NoGeodesicSampling.png>
-Package pdftex.def Info: images/NoGeodesicSampling.png used on input line 124.
-(pdftex.def)             Requested size: 143.9374pt x 149.65875pt.
+Package pdftex.def Info: images/NoGeodesicSampling.png used on input line 130.
+(pdftex.def)             Requested size: 115.14815pt x 119.72517pt.
 
-<images/GeodesicSampling.png, id=69, 260.77425pt x 299.31825pt>
+<images/GeodesicSampling.png, id=81, 260.77425pt x 299.31825pt>
 File: images/GeodesicSampling.png Graphic file (type png)
  <use images/GeodesicSampling.png>
-Package pdftex.def Info: images/GeodesicSampling.png used on input line 124.
-(pdftex.def)             Requested size: 130.3868pt x 149.65875pt.
+Package pdftex.def Info: images/GeodesicSampling.png used on input line 130.
+(pdftex.def)             Requested size: 104.30785pt x 119.72517pt.
 
-<images/ClosestProjections.png, id=70, 254.75175pt x 285.4665pt>
+<images/ClosestProjections.png, id=82, 254.75175pt x 285.4665pt>
 File: images/ClosestProjections.png Graphic file (type png)
  <use images/ClosestProjections.png>
-Package pdftex.def Info: images/ClosestProjections.png used on input line 125.
-(pdftex.def)             Requested size: 127.37555pt x 142.7329pt.
+Package pdftex.def Info: images/ClosestProjections.png used on input line 131.
+(pdftex.def)             Requested size: 101.89888pt x 114.18457pt.
 
-<images/CircularArcNet.png, id=71, 251.13824pt x 286.06876pt>
+<images/CircularArcNet.png, id=83, 251.13824pt x 286.06876pt>
 File: images/CircularArcNet.png Graphic file (type png)
  <use images/CircularArcNet.png>
-Package pdftex.def Info: images/CircularArcNet.png used on input line 125.
-(pdftex.def)             Requested size: 125.56882pt x 143.03403pt.
+Package pdftex.def Info: images/CircularArcNet.png used on input line 131.
+(pdftex.def)             Requested size: 100.4535pt x 114.42546pt.
+ [1{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}
 
-Overfull \hbox (51.16881pt too wide) in paragraph at lines 123--128
+
+ <C:/Users/Sebastian/Documents/GDrive/Studium/Fall 15 Georgia Tech/Computer Graphics/CurveAverage/paper/pic.jpg>] [2 <C:
+/Users/Sebastian/Documents/GDrive/Studium/Fall 15 Georgia Tech/Computer Graphics/CurveAverage/paper/images/NoGeodesicSam
+pling.png> <C:/Users/Sebastian/Documents/GDrive/Studium/Fall 15 Georgia Tech/Computer Graphics/CurveAverage/paper/images
+/GeodesicSampling.png> <C:/Users/Sebastian/Documents/GDrive/Studium/Fall 15 Georgia Tech/Computer Graphics/CurveAverage/
+paper/images/ClosestProjections.png> <C:/Users/Sebastian/Documents/GDrive/Studium/Fall 15 Georgia Tech/Computer Graphics
+/CurveAverage/paper/images/CircularArcNet.png>]
+
+LaTeX Warning: Reference `GeodesicSampling' on page 3 undefined on input line 230.
+
+<images/InflationNoParallelTransport.png, id=125, 125.87025pt x 413.74574pt>
+File: images/InflationNoParallelTransport.png Graphic file (type png)
+
+<use images/InflationNoParallelTransport.png>
+Package pdftex.def Info: images/InflationNoParallelTransport.png used on input line 238.
+(pdftex.def)             Requested size: 88.10857pt x 289.62004pt.
+
+<images/InflationParallelTransport.png, id=126, 110.21175pt x 410.13225pt>
+File: images/InflationParallelTransport.png Graphic file (type png)
+ <use images/InflationParallelTransport.png>
+Package pdftex.def Info: images/InflationParallelTransport.png used on input line 238.
+(pdftex.def)             Requested size: 77.14769pt x 287.0906pt.
+
+<images/InflationHalf.png, id=127, 94.55325pt x 417.35925pt>
+File: images/InflationHalf.png Graphic file (type png)
+ <use images/InflationHalf.png>
+Package pdftex.def Info: images/InflationHalf.png used on input line 239.
+(pdftex.def)             Requested size: 66.18681pt x 292.14948pt.
+
+Overfull \hbox (14.3932pt too wide) in paragraph at lines 237--243
  [][] 
  []
 
-[1{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}
-
-
- <C:/Users/Sebastian/Documents/GDrive/Studium/Fall 15 Georgia Tech/Computer Graphics/CurveAverage/paper/pic.jpg>]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 162.
- [2 <C:/Users/Sebastian/Documents/GDrive/Studium/Fall 15 Georgia Tech/Computer Graphics/CurveAverage/paper/images/NoGeod
-esicSampling.png> <C:/Users/Sebastian/Documents/GDrive/Studium/Fall 15 Georgia Tech/Computer Graphics/CurveAverage/paper
-/images/GeodesicSampling.png> <C:/Users/Sebastian/Documents/GDrive/Studium/Fall 15 Georgia Tech/Computer Graphics/CurveA
-verage/paper/images/ClosestProjections.png> <C:/Users/Sebastian/Documents/GDrive/Studium/Fall 15 Georgia Tech/Computer G
-raphics/CurveAverage/paper/images/CircularArcNet.png>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 162.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 253.
+[3 <C:/Users/Sebastian/Documents/GDrive/Studium/Fall 15 Georgia Tech/Computer Graphics/CurveAverage/paper/images/Inflati
+onNoParallelTransport.png> <C:/Users/Sebastian/Documents/GDrive/Studium/Fall 15 Georgia Tech/Computer Graphics/CurveAver
+age/paper/images/InflationParallelTransport.png> <C:/Users/Sebastian/Documents/GDrive/Studium/Fall 15 Georgia Tech/Compu
+ter Graphics/CurveAverage/paper/images/InflationHalf.png>]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 253.
 
 ("C:\Users\Sebastian\Documents\GDrive\Studium\Fall 15 Georgia Tech\Computer Graphics\CurveAverage\paper\paper.aux")
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 162.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 162.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 253.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 253.
 Package rerunfilecheck Info: File `paper.out' has not changed.
-(rerunfilecheck)             Checksum: 6D666E38F460C777E8B58CFECFA2D025;927.
+(rerunfilecheck)             Checksum: 45CEB5B22F3B7AA016A158C90FAF7E4C;1133.
 
 
 LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 4.5pt have occurred.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 162.
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 253.
  ) 
 Here is how much of TeX's memory you used:
- 16761 strings out of 493921
- 295342 string characters out of 3144864
- 366983 words of memory out of 3000000
- 19711 multiletter control sequences out of 15000+200000
- 111506 words of font info for 132 fonts, out of 3000000 for 9000
+ 16988 strings out of 493921
+ 299878 string characters out of 3144864
+ 366153 words of memory out of 3000000
+ 19926 multiletter control sequences out of 15000+200000
+ 112613 words of font info for 133 fonts, out of 3000000 for 9000
  842 hyphenation exceptions out of 8191
- 56i,13n,55p,532b,546s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 56i,13n,55p,532b,697s stack positions out of 5000i,500n,10000p,200000b,50000s
 {C:/Program Files (x86)/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.enc}<C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/publ
 ic/amsfonts/cm/cmmi10.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi5.pfb><C:/Program Files 
 (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi6.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts
@@ -1106,10 +1137,12 @@ ic/amsfonts/cm/cmmi10.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/
 e1/public/amsfonts/cm/cmr9.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program 
 Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy6.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/am
 sfonts/cm/cmsy7.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy9.pfb><C:/Program Files (x86)/
-MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/times/utmri8a.pfb>
-Output written on paper.pdf (2 pages, 269741 bytes).
+MiKTeX 2.9/fonts/type1/public/amsfonts/symbols/msam10.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/times/utmb8
+a.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1
+/urw/times/utmri8a.pfb>
+Output written on paper.pdf (3 pages, 389919 bytes).
 PDF statistics:
- 166 PDF objects out of 1000 (max. 8388607)
- 27 named destinations out of 1000 (max. 500000)
- 158 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 202 PDF objects out of 1000 (max. 8388607)
+ 35 named destinations out of 1000 (max. 500000)
+ 197 words of extra memory for PDF output out of 10000 (max. 10000000)
 

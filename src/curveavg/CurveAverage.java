@@ -56,6 +56,7 @@ public class CurveAverage extends AbstractPApplet {
 	private boolean showNet = false;
 	private boolean showInflation = false;
 	private boolean showInflationWireframed = false;
+	private boolean inflationParallelTransport = true;
 	private boolean showHalfInflation = false;
 	private int animDirection;
 	private float animStep;
@@ -85,7 +86,7 @@ public class CurveAverage extends AbstractPApplet {
 			//+ "i:interpolate control curve, e:equispaced interpolation, m:show medial axis, "
 			+ "e:equispaced interpolation, m:show medial axis, g:geodesic sampling of the MA, "
 			+ "p:show closest projections, c:show circular arc, n:show net (implies c)\n"
-			+ "t:show inflation tube, w:wireframed inflation tube, h:show only half of the inflation tube",
+			+ "t:show inflation tube, w:wireframed inflation tube, l:enable parallel transport, h:show only half of the inflation tube",
 			guide = "click'n'drag the control points of the two curves green and blue"; // user's guide
 
 	public static void main(String[] args) {
@@ -511,7 +512,7 @@ public class CurveAverage extends AbstractPApplet {
 			}
 			showInflation(A, B, medialAxis, radii, 
 					showHalfInflation ? MEDIAL_AXIS_INFLATION_RESOLUTION/2 : MEDIAL_AXIS_INFLATION_RESOLUTION, 
-					grey80, lightgrey80, showInflationWireframed, showHalfInflation, !showHalfInflation);
+					grey80, lightgrey80, showInflationWireframed, showHalfInflation, !showHalfInflation && inflationParallelTransport);
 		}
             
 	}
@@ -842,6 +843,9 @@ public class CurveAverage extends AbstractPApplet {
 		}
 		if (key == 'w') {
 			showInflationWireframed = !showInflationWireframed;
+		}
+		if (key == 'l') {
+			inflationParallelTransport = !inflationParallelTransport;
 		}
 		if (key == 'h') {
 			showHalfInflation = !showHalfInflation;

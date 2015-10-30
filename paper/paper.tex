@@ -127,8 +127,9 @@ TODO
 \begin{figure*} %This just must appear at the page before the chapter "Displaying the average curve"
 	\centering
 		\begin{tabular}{cccc}
-			\includegraphics[scale=0.5]{images/NoGeodesicSampling.png} & \includegraphics[scale=0.5]{images/GeodesicSampling.png} 
-				& \includegraphics[scale=0.5]{images/ClosestProjections.png} & \includegraphics[scale=0.5]{images/CircularArcNet.png} \\
+			\includegraphics[scale=0.4]{images/NoGeodesicSampling.png} & \includegraphics[scale=0.4]{images/GeodesicSampling.png} 
+				& \includegraphics[scale=0.4]{images/ClosestProjections.png} & \includegraphics[scale=0.4]{images/CircularArcNet.png} \\
+			\small
 			a) no geodesic sampling & b) with geodesic sampling & c) the closest projections & d) net of circular arcs
 		\end{tabular}
 	\caption{Geodesic sampling, closest projections and circular arcs}
@@ -212,7 +213,9 @@ And now we have $\alpha = \frac{ ((AB)\times V).x }{ (U \times V).x}$. We can pi
 
 This then leads to $C=A + \alpha U$, $r=|AC|$ and $N$ as described above.
 
-To draw the circular arc by approximating it using piecewise straight tubes. We sample the arc by rotating the vector $CA$ around $N$ until it becomes $CB$. This is done the same way as in the Swirl-project:
+If the points $A$,$B$,$P$ are collinear, indicated by $N=0$ (plus epsilon), then the circular arc degenerates to a linear interpolation (lerp) from A to B through P.
+
+We draw the circular arc by approximating it using piecewise straight tubes. The samples are obtained by rotating the vector $CA$ around $N$ until it becomes $CB$. This is done the same way as in the Swirl-project:
 \begin{equation}
 \begin{array}{lcl}
  CA^{\circ}(\theta; N) &:=& C + U^{\circ}(\alpha; N) \\
@@ -229,7 +232,22 @@ Furthermore, if we sample the circular arcs at some angles and combine the sampl
 We further provide the ability to animate the average curve between the two control curves. In that animation, each sample of the average curve follows the circular arc between the closest projections.
 
 \subsection{Inflation tube}
-TODO
+\begin{figure}
+	\centering
+		\begin{tabular}{ccc}
+			\includegraphics[scale=0.7]{images/InflationNoParallelTransport.png} & \includegraphics[scale=0.7]{images/InflationParallelTransport.png} 
+				& \includegraphics[scale=0.7]{images/InflationHalf.png}\\
+			a) no  & b) with & c) \\
+			parallel transport & parallel transport & half tube
+		\end{tabular}
+	\caption{the inflation tube}
+	\label{fig:Inflation}
+\end{figure}
+As a last graphic feature, we draw the inflation tube. The inflation tube is the envelope of the minimal balls along the curve average.
+It can be seen as the union of all balls with the center on the curve average that exactly touches the control curve and contains no other point in the interior.
+
+TODO: displaying: NO piecewise tubes orthogonal to the curve average, but rotating PA around the curve average (image)
+TODO: parallel transport
 
 \section{Results}
 

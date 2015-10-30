@@ -6,10 +6,13 @@
 \BOOKMARK [2][-]{subsection.4.2}{Cubic Hermite Spline}{section.4}% 6
 \BOOKMARK [1][-]{section.5}{Average Curve Computation}{}% 7
 \BOOKMARK [2][-]{subsection.5.1}{Distance functions}{section.5}% 8
-\BOOKMARK [2][-]{subsection.5.2}{Average Distance Sampling}{section.5}% 9
-\BOOKMARK [1][-]{section.6}{Visualization and Editing}{}% 10
-\BOOKMARK [2][-]{subsection.6.1}{Editing and displaying the control curve}{section.6}% 11
-\BOOKMARK [2][-]{subsection.6.2}{Displaying the average curve}{section.6}% 12
-\BOOKMARK [2][-]{subsection.6.3}{ClosestProjections}{section.6}% 13
-\BOOKMARK [1][-]{section.7}{Results}{}% 14
-\BOOKMARK [1][-]{section.8}{Future work}{}% 15
+\BOOKMARK [2][-]{subsection.5.2}{Curve tracing}{section.5}% 9
+\BOOKMARK [2][-]{subsection.5.3}{Average Distance \(geodesic\) Sampling}{section.5}% 10
+\BOOKMARK [1][-]{section.6}{Visualization and Editing}{}% 11
+\BOOKMARK [2][-]{subsection.6.1}{Editing and displaying the control curve}{section.6}% 12
+\BOOKMARK [2][-]{subsection.6.2}{Displaying the average curve}{section.6}% 13
+\BOOKMARK [2][-]{subsection.6.3}{Closest projections}{section.6}% 14
+\BOOKMARK [2][-]{subsection.6.4}{Circular arc}{section.6}% 15
+\BOOKMARK [2][-]{subsection.6.5}{Inflation tube}{section.6}% 16
+\BOOKMARK [1][-]{section.7}{Results}{}% 17
+\BOOKMARK [1][-]{section.8}{Future work}{}% 18
