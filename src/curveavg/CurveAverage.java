@@ -130,7 +130,7 @@ public class CurveAverage extends AbstractPApplet {
 		recalculateCurve = true;
 		
 		//test
-		spiralControlPoints();
+//		spiralControlPoints();
 
 		rx += 0.0001f;
 		ry += 0.0001f;

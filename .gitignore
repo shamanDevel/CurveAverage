@@ -8,3 +8,7 @@ hs_err_pid*
 /nbproject/private/
 /build/
 /dist/
+paper/paper.aux
+paper/paper.log
+paper/paper.out
+paper/paper.pdf

@@ -114,7 +114,13 @@ This equation is solved similar to the quadratic case, leading to:
 \section{Average Curve Computation}
 
 \subsection{Distance functions}
-\subsection{Average Distance Sampling}
+TODO
+
+\subsection{Curve tracing}
+TODO
+
+\subsection{Average Distance (geodesic) Sampling}
+TODO
 
 \section{Visualization and Editing}
 
@@ -150,10 +156,80 @@ The user has now the option to toggle geodesic sampling on or off. The effects a
 
 As you can see, without geodesic sampling, the distances between the samples of the curve average are almost equispaced, but the closest projections on the control curve, indicated by the circular arcs, vary greatly in the distances. With geodesic sampling turned on, the curve average is sampled in that way that the sum of the distances between two consecutive closest projects on the control curves are constant. However, this leads to large variation of the distances of the curve average samples.
 
-\subsection{ClosestProjections}
+\subsection{Closest projections}
 To visualize the closest projections, i.e. the points on the control curve that are closest to the average curve at this point, we draw straight lines between the sample of the curve average and its closest projections. These can be seen in Fig.\ref{fig:GeodesicSampling}c. Note that the lines to both control curves are of the same length and that they stand orthogonal to the control curve at the intersections. These are the properties that define the closest projections and the curve average.
 
+\subsection{Circular arc}
+Instead of displaying the closest projections as straight lines, we could also draw them using circular arcs.
+\begin{figure}[ht!] 
+  \centering
+	\begin{tikzpicture}[scale=0.5]
+		\coordinate[label=right:P] (P) at (0,0);
+		\coordinate[label=left:A] (A) at (-6,-2);
+		\coordinate[label=right:B] (B) at (6,-2);
+		\coordinate[label=right:C] (C) at (0,-20);
+		\draw (P)--(A); %closest projections
+		\draw (P)--(B);
+		\draw[blue,thick] (6.4,-0.8) coordinate -- (5.6,-3.2) coordinate; %parts of the control curve
+		\draw[green,thick] (-6.4,-0.8) coordinate -- (-5.6,-3.2) coordinate;
+		\draw (-6.2,-1.4) coordinate -- (-5.6,-1.2) coordinate -- (-5.2,-2.4) coordinate -- (-5.8,-2.6) coordinate; % right angles
+		\draw (6.2,-1.4) coordinate -- (5.6,-1.2) coordinate -- (5.2,-2.4) coordinate -- (5.8,-2.6) coordinate;
+		\path[blue,thick] (6.4,-0.8) coordinate edge[out=70,in=-120] (6.8,1) coordinate; % control curve
+		\path[blue,thick] (5.6,-3.2) coordinate edge[out=250,in=100] (5.8,-5) coordinate;
+		\path[green,thick] (-6.4,-0.8) coordinate edge[out=110,in=-120] (-7,1) coordinate;
+		\path[green,thick] (-5.6,-3.2) coordinate edge[out=290,in=80] (-5,-5) coordinate;
+		\path[black,thick] (0,0) coordinate edge[out=90,in=-70] (-0.2,1) coordinate; % average curve
+		\path[black,thick] (0,0) coordinate edge[out=-90,in=110] (0.2,-3) coordinate;
+		\draw (A)--(C); %circle sides
+		\draw (B)--(C);
+		\coordinate[label=left:r] (r) at (-4,-8);
+		\draw[red,thick] ([shift=(71.567:19)] 0,-20) arc (71.567:108.435:19); %circular arc
+		\tikzset{mypoints/.style={fill=white,draw=black,thick}} %coordinate points
+		\fill[mypoints] (P) circle (5.0pt);
+		\fill[mypoints] (A) circle (5.0pt);
+		\fill[mypoints] (B) circle (5.0pt);
+		\fill[mypoints] (C) circle (5.0pt);
+	\end{tikzpicture}
+	\caption{circular arc}
+	\label{fig:CircularArc}
+\end{figure}
+In Fig.\ref{fig:CircularArc}, you can see parts of the two input curves in green and blue and the curve average in black in the middle. The current trace point is $P$ and the closest projections of $P$ on the control points are $A$ and $B$. \\
+We can now construct a unique circle in 3d with center $C$, radius $r$ and normal $N$ that goes through $A$ and $B$ and the tangents at these points are $AP$ and $BP$.
 
+First, assume $A$,$B$,$P$ are not collinear. Then $ABP$ defines a plane with the normal vector $N=\underline{PA} \times \underline{PB}$. The circular arc lies in that plane. The vectors $U=N \times \underline{PA}$ and $V=N \times \underline{PB}$ are normals of the circle at these points.
+Therefore, the rays $A+\alpha U$ and $B+\beta V$ intersect exactly at the circle center $C$.
+This system is overdetermined but we can solve for $\alpha$ in the following way:
+\begin{equation}
+\begin{array}{rcl}
+A + \alpha U &=& B + \beta V \\
+\alpha U &=& B-A+\beta V \\
+(\alpha U) \times V &=& (AB+\beta V) \times V \\
+\alpha (U\times V) &=& (AB) \times V
+\end{array}
+\label{eq:CircArc}
+\end{equation}
+And now we have $\alpha = \frac{ ((AB)\times V).x }{ (U \times V).x}$. We can pick any coordinate, all have to be the same.
+
+This then leads to $C=A + \alpha U$, $r=|AC|$ and $N$ as described above.
+
+To draw the circular arc by approximating it using piecewise straight tubes. We sample the arc by rotating the vector $CA$ around $N$ until it becomes $CB$. This is done the same way as in the Swirl-project:
+\begin{equation}
+\begin{array}{lcl}
+ CA^{\circ}(\theta; N) &:=& C + U^{\circ}(\alpha; N) \\
+                        & =& C + \cos \alpha U - \sin \alpha (N \times U)\\
+ \multicolumn{3}{l}{\text{with } V := CA\angle\underline{N} = (W\bullet\underline{N})\underline{N}} \\
+ \multicolumn{3}{l}{\text{and } U = CA-V} \\
+ \multicolumn{3}{l}{\theta \text{ ranges from } 0 \text{ to } CA^{\wedge}CB=\cos^{-1}(\underline{CA}\bullet\underline{CB})}
+\end{array}
+\label{eq:Rot}
+\end{equation}
+
+Furthermore, if we sample the circular arcs at some angles and combine the samples with the same angle, we obtain a net, as shown in Fig.\ref{GeodesicSampling}d. If both control curves lie in a plane, this net also lies in the same plane.
+
+We further provide the ability to animate the average curve between the two control curves. In that animation, each sample of the average curve follows the circular arc between the closest projections.
+
+\subsection{Inflation tube}
+TODO
 
 \section{Results}
 
