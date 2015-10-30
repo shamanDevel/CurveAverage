@@ -11,7 +11,7 @@ package curveavg;
  */
 public class Curve {
 	public static final float EPSILON = 0.001f;
-	public static final float TANGENT_SCALE = 1f;
+	public static final float TANGENT_SCALE = 0.5f;
 	
 	//TODO: compute the curve interpolation uniform distributed over the arc-length
 	
