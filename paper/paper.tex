@@ -246,8 +246,73 @@ We further provide the ability to animate the average curve between the two cont
 As a last graphic feature, we draw the inflation tube. The inflation tube is the envelope of the minimal balls along the curve average.
 It can be seen as the union of all balls with the center on the curve average that exactly touches the control curve and contains no other point in the interior.
 
-TODO: displaying: NO piecewise tubes orthogonal to the curve average, but rotating PA around the curve average (image)
-TODO: parallel transport
+\subsubsection{Drawing the inflation tube}
+
+To draw the inflation tube, we get the following input from the tracing algorithm: the samples of the average curve $P_i$, $i\in\{0,...n-1\}$, the closest projections on the two control curves $A_i$ and $B_i$ and the radii or distances to the closest projections $r_i$. We further define the tangent $T_i$ at the average curve sample $i$ as $T_i=\frac{1}{2}(P_{i+1}-P_{i-1})$.
+
+The first way one might think of drawing it, is to circles around the average curve samples $P_i$ in the plane orthogonal to the tangents $T_i$ with radii $r_i$ and connect them to tubes. However, this approach will lead to wrong results since the closest projections to the control curves are not orthogonal to the average curve tangent. Therefore, the distance from the closest projections to the average curve is not equal to the radius of the circle when it should touch the control curves.\\
+
+We present a different approach now. Instead of drawing circles orthogonal to the tangents, we directly take the vectors $P_i A_i$ and rotate them around $T_i$. This technique is visualized in Fig.\ref{fig:InflationDrawing}. We rotate $P_i A_i$ as described in Eq.\ref{eq:Rot} the whole $360^{\circ}$. At $180^{\circ}$, the vector becomes $P_i B_i$. We then sample the circles at constant angles and connect samples with the same angle, leading to the tube as shown in Fig.\ref{fig:Inflation}a.
+
+\begin{figure}[ht!] 
+  \centering
+	\begin{tikzpicture}[scale=0.5]
+		\draw[black,thick] (0,0) coordinate -- (0,10) coordinate; %curves
+		\draw[green,thick] (-3,0) coordinate -- (-6,10) coordinate;
+		\draw[blue,thick] (3,0) coordinate -- (6,10) coordinate;
+		\coordinate[label=right:$P_{i+1}$] (P2) at (0,8) coordinate; %samples
+		\coordinate[label=right:$P_{i}$] (P1) at (0,6) coordinate;
+		\coordinate[label=right:$P_{i-1}$] (P0) at (0,4) coordinate;
+		\draw[dashed] (0,8) coordinate -- (5,6.5) coordinate; %closest projections
+		\draw[dashed] (0,8) coordinate -- (-2.5,7.25) coordinate node[below] {$r_{i+1}$} -- (-5,6.5) coordinate;
+		\draw[dashed] (0,6) coordinate -- (4.5,4.65) coordinate;
+		\draw[dashed] (0,6) coordinate -- (-2.25,5.325) coordinate node[below] {$r_{i}$} -- (-4.5,4.65) coordinate;
+		\draw[dashed] (0,4) coordinate -- (4,2.8) coordinate;
+		\draw[dashed] (0,4) coordinate -- (-2,3.4) coordinate node[below] {$r_{i-1}$} -- (-4,2.8) coordinate;
+		\coordinate[label=left:$A_{i+1}$] (A2) at (-5,6.5) coordinate; %closest projection points
+		\coordinate[label=left:$A_{i}$] (A1) at (-4.45,4.65) coordinate;
+		\coordinate[label=left:$A_{i-1}$] (A0) at (-3.9,2.8) coordinate;
+		\coordinate[label=left:$B_{i+1}$] (B2) at (5,6.5) coordinate;
+		\coordinate[label=left:$B_{i}$] (B1) at (4.45,4.65) coordinate;
+		\coordinate[label=left:$B_{i-1}$] (B0) at (3.9,2.8) coordinate;
+		\draw[red,thick] ([shift=(180:5)] 0,6.5) arc (180:0:5 and 3); %tube elipses
+		\draw[red,dashed,thick] ([shift=(180:5)] 0,6.5) arc (180:360:5 and 3);
+		\draw[red,thick] ([shift=(180:4.5)] 0,4.65) arc (180:0:4.5 and 2.7);
+		\draw[red,dashed,thick] ([shift=(180:4.5)] 0,4.65) arc (180:360:4.5 and 2.7);
+		\draw[red,thick] ([shift=(180:3.9)] 0,2.8) arc (180:0:3.9 and 2.4);
+		\draw[red,dashed,thick] ([shift=(180:3.9)] 0,2.8) arc (180:360:3.9 and 2.4);
+		\tikzset{mypoints/.style={fill=white,draw=black,thick}} %coordinate points
+		\foreach \p in {P0,P1,P2,A0,A1,A2,B0,B1,B2}
+			\fill[mypoints] (\p) circle (5.0pt);
+	\end{tikzpicture}
+	\caption{inflation tube}
+	\label{fig:InflationDrawing}
+\end{figure}
+
+\subsubsection{Parallel transport}
+When the control curves rotate around the average curve, the inflation tube follows this rotation, as seen in Fig.\ref{fig:Inflation}a. However, often Fig.\ref{fig:Inflation}b is required. Here, the rotation of the inflation tube stays constant although the control curves rotate around it.
+
+The technique to achieve this result is called Parallel Transport. The only thing we have to do is to modify the start angle $\alpha_i$. Instead of sampling each circle (see previous section) starting with $0^{\circ}$, we start it at an angle that minimizes the rotation to the previous circle.
+
+The task is now the following: given the previous tangent $\underline{T_{i-1}}$, rotated vector $P_{i-1}A_{i-1}$ and start angle $\alpha_{i-1}$, and the current tangent $\underline{T_i}$ and rotated vector $P_i A_i$, find the current start angle $\alpha_i$ so that the twist is minimized.
+In other words, we have to find $\alpha_i$ so that $P_i A_i^{\circ}(\alpha_i; T_i)$ lies in the plane spanned by $T_{i-1}$ and $X:=P_{i-1}A_{i-1}^{\circ}(\alpha_{i-1}; T_{i-1})$:
+
+\begin{equation}
+	\begin{array}{rcl}
+		\underline{X} &:=& \underline{P_{i-1}A_{i-1}^{\circ}(\alpha_{i-1}; T_{i-1})} \\
+		\underline{N'} &:=& \underline{T_{i-1}} \times \underline{X} \\
+		\underline{PA'} &:=& \underline{P_i A_i} \\
+		x &:=& \underline{PA'} \bullet \underline{N'} \\
+		y &:=& \underline{PA'} \bullet \underline{X} \\
+		PA'' &:=& xN' + yX \\
+		\alpha_i &:=& ( (x<0)?(-1):1 ) \cdot \cos^{-1}(\underline{X} \bullet \underline{PA''})
+	\end{array}
+\label{eq:ParallelTransport}
+\end{equation}
+$\underline{N'}$ is the normal of the reference plane, then we project $P_i A_i$ in that plane and obtain $PA''$. The final angle $\alpha_i$ is then the angle between the reference vector $X$ and the projected vector $PA''$. Since this angle does not include the direction of the twist, we have to invert the angle if $x<0$.
+
+\subsubsection{half tube}
+Instead of drawing the whole inflation tube without parallel transport, we could also draw only half of it. This leads to the interesting effect of a waterslide as seen in Fig.\ref{fig:Inflation}c.
 
 \section{Results}
 

@@ -705,7 +705,7 @@ public class CurveAverage extends AbstractPApplet {
 					Vector3f reference = rotate(angles[i-1], CAp, Ns[i-1]);
 					//compute the angle so that CA°angle lies in the plane N x reference
 					Vector3f refPrime = reference.normalize();
-					Vector3f NPrime = N.cross(refPrime);
+					Vector3f NPrime = Ns[i-1].cross(refPrime);
 					Vector3f CAPrime = CA.normalize();
 					float x = CAPrime.dot(NPrime);
 					float y = CAPrime.dot(refPrime);
