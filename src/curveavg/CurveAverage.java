@@ -81,7 +81,7 @@ public class CurveAverage extends AbstractPApplet {
 
 	String title = "6491 P3 2015: Curve Average", name = "Sebastian Weiß, Can Erdogan",
 			menu = "!:picture, ~:(start/stop)capture, space:rotate, "
-			+ "s/wheel:closer, a:anim, x:show coordinate axes\n"
+			+ "s/wheel:closer, a:anim, x:show coordinate axes, 1-4:load presets\n"
 			//+ "i:interpolate control curve, e:equispaced interpolation, m:show medial axis, "
 			+ "e:equispaced interpolation, m:show medial axis, g:geodesic sampling of the MA, "
 			+ "p:show closest projections, c:show circular arc, n:show net (implies c)\n"
@@ -103,19 +103,12 @@ public class CurveAverage extends AbstractPApplet {
 		myFace = loadImage("data/pic.jpg");  // load image from file pic.jpg in folder data *** replace that file with your pic of your own face
 		textureMode(NORMAL);
 
-		//example curve
-		controlPoints = new Vector3f[]{
-			new Vector3f(-60, -40, -80), //start
-			new Vector3f(-60, -10, -40),
-			new Vector3f(-30, 12, -6),
-			new Vector3f(0, 50, 60),
-			new Vector3f(80, 45, 140),
-			new Vector3f(170, 90, 200), //end
-			new Vector3f(140, 70, 160),
-			new Vector3f(100, 37, 100),
-			new Vector3f(50, 19, 40),
-			new Vector3f(0, 15, -20)
-		};
+		controlPoints = new Vector3f[10];
+		for (int i=0; i<10; ++i) {
+			controlPoints[i] = new Vector3f();
+		}
+		//first setup
+		setup1_Normal();
 //		for(int i = 0; i < controlPoints.length; i++) controlPoints[i].y = 0.0f;
 
 		curveA = new Vector3f[controlPoints.length / 2 + 1];
@@ -148,7 +141,19 @@ public class CurveAverage extends AbstractPApplet {
 		 };
 		 */
 	}
-	private void spiralControlPoints() {
+	private void setup1_Normal() {
+		controlPoints[0].set(-60, -40, -80);
+		controlPoints[1].set(-60, -10, -40);
+		controlPoints[2].set(-30, 12, -6);
+		controlPoints[3].set(0, 50, 60);
+		controlPoints[4].set(80, 45, 140);
+		controlPoints[5].set(170, 90, 200);
+		controlPoints[6].set(140, 70, 160);
+		controlPoints[7].set(100, 37, 100);
+		controlPoints[8].set(50, 19, 40);
+		controlPoints[9].set(0, 15, -20);
+	}
+	private void setup2_Spiral() {
 		curveA[0].set(0, 0, -140);
 		curveA[5].set(0, 0, 145);
         curveB[0].set(0, 0, -140); //they share the same instance!
@@ -176,21 +181,40 @@ public class CurveAverage extends AbstractPApplet {
 		
 		//add noise
 		Random rand = new Random();
-                float randomness = 0.1f;
-		for (int i=0; i<curveA.length; ++i) {
-			curveA[i].addLocal(rand.nextFloat()*randomness, rand.nextFloat()*randomness, rand.nextFloat()*randomness);
+		float randomness = 0.1f;
+		for (int i=0; i<controlPoints.length; ++i) {
+			controlPoints[i].addLocal(rand.nextFloat()*randomness, rand.nextFloat()*randomness, rand.nextFloat()*randomness);
 		}
-                for (int i=0; i<curveB.length; ++i) {
-			curveB[i].addLocal(rand.nextFloat()*randomness, rand.nextFloat()*randomness, rand.nextFloat()*randomness);
+	}
+	private void setup3_Bow() {
+		curveA[0].set(-10, 0, -100);
+		curveA[5].set(10, 0, -100);
+		curveA[1].set(-80, 50, -20);
+		curveA[2].set(-50, 30, 40);
+		curveA[3].set(50, -30, 40);
+		curveA[4].set(80, -50, -20);
+		curveB[1].set(-80, -50, -20);
+		curveB[2].set(-50, -30, 40);
+		curveB[3].set(50, 30, 40);
+		curveB[4].set(80, 50, -20);
+		//add noise
+		Random rand = new Random();
+		float randomness = 0.1f;
+		for (int i=0; i<controlPoints.length; ++i) {
+			controlPoints[i].addLocal(rand.nextFloat()*randomness, rand.nextFloat()*randomness, rand.nextFloat()*randomness);
 		}
-                curveB[0] = curveA[0];
-                curveB[5] = curveA[5];
-                for (int i = 0; i < curveA.length; ++i) {
-                    controlPoints[i] = curveA[i];
-		}
-		for (int i = 1; i < curveB.length; ++i) {
-                    controlPoints[controlPoints.length - i] = curveB[i];
-		}
+	}
+	private void setup4_Waterslide() {
+		controlPoints[0].set(-100, 20, 100);
+		controlPoints[1].set(-16.7f, -9.5f, 43.8f);
+		controlPoints[2].set(9.6f, 14.5f, 0.5f);
+		controlPoints[3].set(-40, 30.8f, -31.7f);
+		controlPoints[4].set(0, -20, -70);
+		controlPoints[5].set(150, -70, -100);
+		controlPoints[6].set(-16.6f, -56.2f, -56.8f);
+		controlPoints[7].set(-73.5f, 57.4f, -20.8f);
+		controlPoints[8].set(46.1f, 28, -7.4f);
+		controlPoints[9].set(-30.4f, -55f, 40);
 	}
 
 	public void drawPoint(Vector3f P, int color) {
@@ -824,6 +848,22 @@ public class CurveAverage extends AbstractPApplet {
 		}
 		if (key == 'x') {
 			showCoordinateAxes = !showCoordinateAxes;
+		}
+		if (key == '1') {
+			setup1_Normal();
+			recalculateCurve = true;
+		}
+		if (key == '2') {
+			setup2_Spiral();
+			recalculateCurve = true;
+		}
+		if (key == '3') {
+			setup3_Bow();
+			recalculateCurve = true;
+		}
+		if (key == '4') {
+			setup4_Waterslide();
+			recalculateCurve = true;
 		}
 
 		// if(key=='.') F=P.Picked(); // snaps focus F to the selected vertex of P (easier to rotate and zoom while keeping it in center)
