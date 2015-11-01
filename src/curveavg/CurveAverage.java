@@ -217,8 +217,8 @@ public class CurveAverage extends AbstractPApplet {
 		controlPoints[4].set(0, -20, -70);
 		controlPoints[5].set(150, -70, -100);
 		controlPoints[6].set(-16.6f, -56.2f, -56.8f);
-		controlPoints[7].set(-73.5f, 57.4f, -20.8f);
-		controlPoints[8].set(46.1f, 28, -7.4f);
+		controlPoints[7].set(-53.5f, 47.4f, -20.8f);
+		controlPoints[8].set(30.1f, 28, -7.4f);
 		controlPoints[9].set(-30.4f, -55f, 40);
 	}
 
@@ -422,9 +422,13 @@ public class CurveAverage extends AbstractPApplet {
 			}
 		}
         
+		if (ma.size() < 10) {
+			return; //unable to trace medial axis
+		}
+		
                 //show circular arcs
 		if (showCircularArcs || showNet) {
-                        assert(ma.size() >= MEDIAL_AXIS_ARC_COUNT);     // to ensure the division below makes sense and step is not 0
+            //assert(ma.size() >= MEDIAL_AXIS_ARC_COUNT);     // to ensure the division below makes sense and step is not 0
 			int step = (int) (ma.size() / (float) MEDIAL_AXIS_ARC_COUNT);
             
 			for (float f=step; f<ma.size(); f+=step) {

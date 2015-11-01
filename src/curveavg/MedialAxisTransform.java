@@ -213,8 +213,10 @@ public class MedialAxisTransform {
 			float realDist = 
 					Curve.computeArcLength(curveA, start.projectionOnA[0], r.ta, 32)
 					+ Curve.computeArcLength(curveB, start.projectionOnB[0], r.tb, 32);
-                        if(realDist < 1e-3)
-                            System.out.println("real step size: "+realDist);
+                        if(realDist < 1e-3) {
+							LOG.warning("zero length step");
+							i++;
+						}
                         
                         if(realDist > targetStepSize * 1.5) {
                             incompatibleSectionsA.add(new Vector2f(start.projectionOnA[0], r.ta));
