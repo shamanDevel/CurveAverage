@@ -315,7 +315,34 @@ $\underline{N'}$ is the normal of the reference plane, then we project $P_i A_i$
 Instead of drawing the whole inflation tube without parallel transport, we could also draw only half of it. This leads to the interesting effect of a waterslide as seen in Fig.\ref{fig:Inflation}c.
 
 \section{Results}
+In conclusion, we are able to trace the average curve of two piecewise hermite interpolated curves in real-time, whereat the user defines the control points by dragging them around.
+We presented ideas on how to detect if the two control curves are compatible or not.
+Furthermore, we showed different ways on how to display the average curve, using line segments to the closest projections, circular arcs or the inflation tube.
 
 \section{Future work}
+This work can easily be extended to any kind of input curve and any number of control points.
+Also more freedom for the user to specify the input curve, like editing the velocities, might be helpful for specific applications.
+
+% EXAMPLES
+\begin{figure*}
+	\centering
+		\includegraphics[scale=0.4]{images/Result1.png}
+		\includegraphics[scale=0.4]{images/Result2.png}
+	\caption{Example 1: a bow}
+	\label{fig:Result1}
+\end{figure*}
+\begin{figure*}
+	\centering
+		\includegraphics[scale=0.4]{images/Result3.png}
+	\caption{Example 2: a waterslide}
+	\label{fig:Result3}
+\end{figure*}
+\begin{figure*}
+	\centering
+		\includegraphics[scale=0.5]{images/Result4.png}
+		\includegraphics[scale=0.5]{images/Result5.png}
+	\caption{Example 3: extreme cases and non-compatibility detection}
+	\label{fig:Result4}
+\end{figure*}
 
 \end{document}
