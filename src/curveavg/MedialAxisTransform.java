@@ -23,7 +23,7 @@ import org.apache.commons.math3.exception.TooManyEvaluationsException;
  */
 public class MedialAxisTransform {
 	private static final Logger LOG = Logger.getLogger(MedialAxisTransform.class.getName());
-        private static final float STEPSIZE = 2f;
+        private static final float STEPSIZE = 1f;
         private static final int MAX_MA_ITERATION = 500;
         
 	public static class Line {
@@ -615,14 +615,14 @@ public class MedialAxisTransform {
 		SolverResult res = solveQuinticLaguerre(a / f, b / f, c / f, d / f, e / f, 1.0f);
 
 		// Check which endpoint is closer
-		float dist0 = Q.distance(P0);
-		float dist1 = Q.distance(P1);
-		float minEndpointDist = Math.min(dist0, dist1);
+//		float dist0 = Q.distance(P0);
+//		float dist1 = Q.distance(P1);
+//		float minEndpointDist = Math.min(dist0, dist1);
 //            System.out.println("Minimum endpoint dist: " + minEndpointDist);
 
             // For each nonimaginary root, with real part within [0,1], compute 
 		// the distance to the input point and find the smallest value
-		float bestDist = 1e6f;
+		float bestDistSQ = 1e6f;
 		float time = -1f;
 		for (int i = 0; i < 6; i++) {
 			if (Math.abs(res.im[i]) > 1e-3) {
@@ -632,11 +632,11 @@ public class MedialAxisTransform {
 				continue;
 			}
 			Vector3f Pt = Curve.cubicHermite(P0, T0, P1, T1, res.re[i]);
-			float dist = Q.distance(Pt);
+			float distSQ = Q.distanceSquared(Pt);
 //                System.out.println("\troot t: " + res.re[i] + ", pt: " + Pt.toString() + ", dist:" + dist);
-			if (dist < bestDist) {
+			if (distSQ < bestDistSQ) {
 				time = res.re[i];
-				bestDist = dist;
+				bestDistSQ = distSQ;
 			}
 		}
 
@@ -668,7 +668,7 @@ public class MedialAxisTransform {
 		double minBound = 0.0;
 		double sol;
 		int root_idx = 0;
-		final double dt = 0.001;
+		final double dt = 0.01;
 		for (double t = -dt; t < 1.0; t += dt) {
 
 			// Check if there is a sign-crossing between the two times
