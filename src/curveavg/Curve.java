@@ -5,6 +5,11 @@
  */
 package curveavg;
 
+import java.util.ArrayList;
+import java.util.List;
+import processing.core.*;
+import processing.event.*;
+
 /**
  * Implements the curve interpolation using piecewise Hermite.
  * @author Sebastian Weiss
@@ -102,7 +107,9 @@ public class Curve {
 	 * @return equispaced samplings of the interpolated curve.
 	 * @see #interpolate(curveavg.Vector3f[], float) 
 	 */
-	public static Vector3f[] interpolateEquispacedArcLength(Vector3f[] controlPoints, int numSamples) {
+	public static Vector3f[] interpolateEquispacedArcLength(Vector3f[] controlPoints, int numSamples,
+                List <Vector2f> incompatibleSections, List <Integer> colors, int defaultColor) {
+            
 		//First step: Oversample curve to calculate the total arc length
 		Vector3f[] samples1 = new Vector3f[numSamples * 2];
 		float step1 = samples1.length-1;
@@ -121,6 +128,7 @@ public class Curve {
 		//Third step: sample final curve equispaced
 		Vector3f[] samples2 = new Vector3f[numSamples];
 		samples2[0] = controlPoints[0]; //fix first and last point
+                colors.add(AbstractPApplet.blue);
 		samples2[numSamples-1] = controlPoints[controlPoints.length-1];
 		int j=0;
 		float step2 = arcLength / (numSamples-1);
@@ -135,7 +143,21 @@ public class Curve {
 			}
 			float t = (j + (d-distances[j])/(distances[j+1]-distances[j])) / step1;
 			samples2[i] = interpolate(controlPoints, t);
+                        
+                        // Change the color if in bad section
+                        boolean inBadSection = false;
+                        for(int sec_idx = 0; sec_idx < incompatibleSections.size(); sec_idx++) {
+                            if(t >= incompatibleSections.get(sec_idx).x && t <= incompatibleSections.get(sec_idx).y) {
+                                inBadSection = true;
+                                break;
+                            }
+                        }
+                        if(inBadSection)
+                            colors.add(AbstractPApplet.red);
+                        else 
+                            colors.add(defaultColor);
 		}
+                colors.add(AbstractPApplet.blue);
 		return samples2;
 	}
 	

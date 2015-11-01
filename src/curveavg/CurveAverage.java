@@ -50,7 +50,7 @@ public class CurveAverage extends AbstractPApplet {
 	private boolean interpolateControlCurve = true;
 	private boolean equispacedInterpolation = true;
 	private boolean showMedialAxis = true;
-	private boolean geodesicMedialAxis = false;
+	private boolean geodesicMedialAxis = true;
 	private boolean showClosestProjection = false;
 	private boolean showCircularArcs = true;
 	private boolean showNet = false;
@@ -78,8 +78,12 @@ public class CurveAverage extends AbstractPApplet {
 	public Vector3f[] debugPoints;             ///< Some useful points that we can drag around 
 	boolean recalculateCurve = false;
 	private Vector3f[] samplesA, samplesB;
+        List <Integer> colorsA = new ArrayList<Integer>();
+        List <Integer> colorsB = new ArrayList<Integer>();
 	List<MedialAxisTransform.TracePoint> ma = new ArrayList<MedialAxisTransform.TracePoint>();
-
+        List<Vector2f> incompatibleSectionsA = new ArrayList<Vector2f>();
+        List<Vector2f> incompatibleSectionsB = new ArrayList<Vector2f>();
+        
 	String title = "6491 P3 2015: Curve Average", name = "Sebastian Weiß, Can Erdogan",
 			menu = "!:picture, ~:(start/stop)capture, space:rotate, "
 			+ "s/wheel:closer, a:anim, x:show coordinate axes, 1-4:load presets\n"
@@ -347,8 +351,10 @@ public class CurveAverage extends AbstractPApplet {
 			//recalculate control curves
 			if (interpolateControlCurve) {
 				if (equispacedInterpolation) {
-					samplesA = Curve.interpolateEquispacedArcLength(curveA, (curveA.length - 1) * CURVE_INTERPOLATION_SAMPLES);
-					samplesB = Curve.interpolateEquispacedArcLength(curveB, (curveB.length - 1) * CURVE_INTERPOLATION_SAMPLES);
+                                        colorsA.clear();
+                                        colorsB.clear();
+					samplesA = Curve.interpolateEquispacedArcLength(curveA, (curveA.length - 1) * CURVE_INTERPOLATION_SAMPLES, incompatibleSectionsA, colorsA, blue);
+					samplesB = Curve.interpolateEquispacedArcLength(curveB, (curveB.length - 1) * CURVE_INTERPOLATION_SAMPLES, incompatibleSectionsB, colorsB, green);
 				} else {
 					samplesA = Curve.interpolateUniformly(curveA, (curveA.length - 1) * CURVE_INTERPOLATION_SAMPLES);
 					samplesB = Curve.interpolateUniformly(curveB, (curveB.length - 1) * CURVE_INTERPOLATION_SAMPLES);
@@ -357,7 +363,9 @@ public class CurveAverage extends AbstractPApplet {
 			//trace medial axis
 			ma.clear();
 			if (geodesicMedialAxis) {
-				MedialAxisTransform.geodesicTrace(curveA, curveB, MEDIAL_AXIS_GEODESIC_SAMPLE_COUNT, ma);
+                                incompatibleSectionsA.clear();
+                                incompatibleSectionsB.clear();
+				MedialAxisTransform.geodesicTrace(curveA, curveB, MEDIAL_AXIS_GEODESIC_SAMPLE_COUNT, ma, incompatibleSectionsA, incompatibleSectionsB);
 			} else {
 				MedialAxisTransform.trace(curveA, curveB, ma);
 			}
@@ -365,8 +373,8 @@ public class CurveAverage extends AbstractPApplet {
 
 		//show control curves
 		if (interpolateControlCurve) {
-			showQuads(samplesA, CURVE_CYLINDER_RADIUS, CURVE_CYLINDER_SAMPLES, blue, true);
-			showQuads(samplesB, CURVE_CYLINDER_RADIUS, CURVE_CYLINDER_SAMPLES, green, true);
+			showQuads(samplesA, colorsA, CURVE_CYLINDER_RADIUS, CURVE_CYLINDER_SAMPLES, blue, true);
+			showQuads(samplesB, colorsB, CURVE_CYLINDER_RADIUS, CURVE_CYLINDER_SAMPLES, green, true);
 		} else {
 			fill(blue);
 			for (int i = 1; i < curveA.length; ++i) {
@@ -378,7 +386,7 @@ public class CurveAverage extends AbstractPApplet {
 			}
 		}
                 
-		//show medial axis
+  		//show medial axis
 		showMedialAxis();
 
 	}
@@ -517,6 +525,74 @@ public class CurveAverage extends AbstractPApplet {
             
 	}
 
+        /**
+	 * Show a quad tube
+	 * @param C the control points of that tube
+	 * @param r the radius of the tube
+	 * @param ne the resolution of the tube
+	 * @param col the color
+	 * @param checked if true, a checkered pattern is applied
+	 */
+	void showQuads(Vector3f[] C, List <Integer> colors, float r, int ne, int col, boolean checked) {
+		Vector3f[] L = new Vector3f[C.length];
+		L[0] = C[1].subtract(C[0]).crossLocal(Vector3f.UNIT_Z).normalizeLocal();
+		Vector3f[][] P = new Vector3f[2][ne];
+		int p = 0;
+		boolean dark = true;
+		float[] c = new float[ne];
+		float[] s = new float[ne];
+		for (int j = 0; j < ne; j++) {
+			c[j] = r * cos(TWO_PI * j / ne);
+			s[j] = r * sin(TWO_PI * j / ne);
+		}
+		for (int j = 0; j < ne; j++) {
+			P[p][j] = C[0].add(C[1]);
+			P[p][j].addScaledLocal(c[j], L[0]);
+			P[p][j].addScaledLocal(s[j], L[0].cross(C[1].subtract(C[0]).normalizeLocal()));
+		}
+		p = 1 - p;
+		for (int i = 1; i < C.length - 1; i++) {
+			dark = !dark;
+			Vector3f I = C[i].subtract(C[i - 1]).normalizeLocal();
+			Vector3f Ip = C[i + 1].subtract(C[i]).normalizeLocal();
+			Vector3f IpmI = Ip.subtract(I);
+			Vector3f N = I.cross(Ip);
+			if (N.lengthSquared() < 0.001 * 0.001) {
+				L[i] = L[i - 1];
+			} else {
+				float mixed = N.normalize().cross(I).dot(L[i - 1]);
+				L[i] = L[i - 1].clone();
+				L[i].addScaledLocal(mixed, N.normalize().cross(IpmI));
+			}
+			I = L[i].normalize();
+			Vector3f J = I.cross(Ip).normalize();
+			for (int j = 0; j < ne; j++) {
+				P[p][j] = C[i].add(C[i + 1]);
+				P[p][j].addScaledLocal(c[j], I);
+				P[p][j].addScaledLocal(s[j], J);
+			}
+			p = 1 - p;
+			if (i > 0) {
+				for (int j = 0; j < ne; j++) {
+					if (dark && checked) {
+						fill(200, 200, 200);
+					} else {
+                                                fill(colors.get(i));
+//						fill(col);
+					}
+					dark = !dark;
+					int jp = (j + ne - 1) % ne;
+					beginShape(QUADS);
+					vertex(P[p][jp].mult(0.5f));
+					vertex(P[p][j].mult(0.5f));
+					vertex(P[1 - p][j].mult(0.5f));
+					vertex(P[1 - p][jp].mult(0.5f));
+					endShape(CLOSE);
+				}
+			}
+		}
+	}
+        
 	/**
 	 * Show a quad tube
 	 * @param C the control points of that tube

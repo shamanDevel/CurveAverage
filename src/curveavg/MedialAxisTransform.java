@@ -148,9 +148,11 @@ public class MedialAxisTransform {
 	 * @param curveB the control points of the second curve
 	 * @param resolution the expected resolution of the target curve
 	 * @param output an empty list, place the traced point in here
+         * @param incompatibleSections a list of Vector2f for the beginning and 
+         * end times of the bad sections
 	 */
 	public static void geodesicTrace(Vector3f[] curveA, Vector3f[] curveB,
-			int resolution, List<TracePoint> output) {
+			int resolution, List<TracePoint> output, List <Vector2f> incompatibleSectionsA, List <Vector2f> incompatibleSectionsB) {
 		//trace it normally
 		List<TracePoint> traceList = new ArrayList<>();
 		trace(curveA, curveB, traceList);
@@ -211,7 +213,14 @@ public class MedialAxisTransform {
 			float realDist = 
 					Curve.computeArcLength(curveA, start.projectionOnA[0], r.ta, 32)
 					+ Curve.computeArcLength(curveB, start.projectionOnB[0], r.tb, 32);
-			System.out.println("real step size: "+realDist);
+                        if(realDist < 1e-3)
+                            System.out.println("real step size: "+realDist);
+                        
+                        if(realDist > targetStepSize * 1.5) {
+                            incompatibleSectionsA.add(new Vector2f(start.projectionOnA[0], r.ta));
+                            incompatibleSectionsB.add(new Vector2f(start.projectionOnB[0], r.tb));
+                        }
+                        
 			//add add trace point
 			TracePoint tp = new TracePoint(r.center, r.radius, r.ta, r.tb);
 			output.add(tp);
@@ -397,13 +406,13 @@ public class MedialAxisTransform {
 			current = r.center;
 //			System.out.println("current="+current+", tA="+nextTA+", tB="+nextTB);
 			if (nextTA >= 1 || nextTB >= 1) {
-                                LOG.info("reached end");
+//                                LOG.info("reached end");
 				return true; //end reached
 			}
 			if (nextTA < ta || nextTB < tb) {
 				//use this as a stop condition
 				
-				LOG.severe("going backwards!!!");
+//				LOG.severe("going backwards!!!");
                                 return true;
 //				return false;
 			}
