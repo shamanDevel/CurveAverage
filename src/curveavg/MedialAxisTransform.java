@@ -170,7 +170,16 @@ public class MedialAxisTransform {
 		output.clear();
 		output.add(trace[0]);
 		int i=0;
+		int maxIterations = 1000;
+		int iterationCounter = 0;
 		while (true) {
+			//in rare cases, this produces endless loops
+			if (iterationCounter > maxIterations) {
+				LOG.warning("geodesic trace took too long");
+				break;
+			}
+			iterationCounter++;
+			
 			TracePoint start = output.get(output.size()-1);
 			//find trace point that is behind the target step size
 			int lowerIndex = i;

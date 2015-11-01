@@ -392,6 +392,15 @@ public class CurveAverage extends AbstractPApplet {
 	}
 	
 	private void showMedialAxis() {
+		//test if it was possible to trace the medial axis
+		if (ma.size() < 10) {
+			return; //unable to trace medial axis
+		}
+		for (MedialAxisTransform.TracePoint p : ma) {
+			if (Float.isNaN(p.center.x) || Float.isNaN(p.center.y) || Float.isNaN(p.center.z)) {
+				return;
+			}
+		}
             
 		//interpolate center polyline
 		if (showMedialAxis) {
@@ -421,15 +430,12 @@ public class CurveAverage extends AbstractPApplet {
 				}
 			}
 		}
-        
-		if (ma.size() < 10) {
-			return; //unable to trace medial axis
-		}
 		
-                //show circular arcs
+		//show circular arcs
 		if (showCircularArcs || showNet) {
             //assert(ma.size() >= MEDIAL_AXIS_ARC_COUNT);     // to ensure the division below makes sense and step is not 0
 			int step = (int) (ma.size() / (float) MEDIAL_AXIS_ARC_COUNT);
+			step = Math.max(1, step);
             
 			for (float f=step; f<ma.size(); f+=step) {
 
@@ -644,22 +650,20 @@ public class CurveAverage extends AbstractPApplet {
 				P[p][j].addScaledLocal(s[j], J);
 			}
 			p = 1 - p;
-			if (i > 0) {
-				for (int j = 0; j < ne; j++) {
-					if (dark && checked) {
-						fill(200, 200, 200);
-					} else {
-						fill(col);
-					}
-					dark = !dark;
-					int jp = (j + ne - 1) % ne;
-					beginShape(QUADS);
-					vertex(P[p][jp].mult(0.5f));
-					vertex(P[p][j].mult(0.5f));
-					vertex(P[1 - p][j].mult(0.5f));
-					vertex(P[1 - p][jp].mult(0.5f));
-					endShape(CLOSE);
+			for (int j = 0; j < ne; j++) {
+				if (dark && checked) {
+					fill(200, 200, 200);
+				} else {
+					fill(col);
 				}
+				dark = !dark;
+				int jp = (j + ne - 1) % ne;
+				beginShape(QUADS);
+				vertex(P[p][jp].mult(0.5f));
+				vertex(P[p][j].mult(0.5f));
+				vertex(P[1 - p][j].mult(0.5f));
+				vertex(P[1 - p][jp].mult(0.5f));
+				endShape(CLOSE);
 			}
 		}
 	}
