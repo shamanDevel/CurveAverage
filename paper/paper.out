@@ -6,11 +6,12 @@
 \BOOKMARK [2][-]{subsection.4.2}{Cubic Hermite Spline}{section.4}
 \BOOKMARK [1][-]{section.5}{Average Curve Computation}{}
 \BOOKMARK [2][-]{subsection.5.1}{Distance functions}{section.5}
-\BOOKMARK [3][-]{subsubsection.5.1.1}{Newton-Raphson Method}{subsection.5.1}
-\BOOKMARK [3][-]{subsubsection.5.1.2}{Laguerre's Method}{subsection.5.1}
-\BOOKMARK [2][-]{subsection.5.2}{Curve tracing}{section.5}
-\BOOKMARK [2][-]{subsection.5.3}{Average Distance \(geodesic\) Sampling}{section.5}
-\BOOKMARK [2][-]{subsection.5.4}{Detect non-compatible control curves}{section.5}
+\BOOKMARK [2][-]{subsection.5.2}{Optimization methods}{section.5}
+\BOOKMARK [3][-]{subsubsection.5.2.1}{Newton-Raphson Method}{subsection.5.2}
+\BOOKMARK [3][-]{subsubsection.5.2.2}{Laguerre's Method}{subsection.5.2}
+\BOOKMARK [2][-]{subsection.5.3}{Curve tracing}{section.5}
+\BOOKMARK [2][-]{subsection.5.4}{Average Distance \(geodesic\) Sampling}{section.5}
+\BOOKMARK [2][-]{subsection.5.5}{Detect incompatible control curves}{section.5}
 \BOOKMARK [1][-]{section.6}{Visualization and Editing}{}
 \BOOKMARK [2][-]{subsection.6.1}{Editing and displaying the control curve}{section.6}
 \BOOKMARK [2][-]{subsection.6.2}{Displaying the average curve}{section.6}

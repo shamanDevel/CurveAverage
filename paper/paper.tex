@@ -123,7 +123,6 @@ This equation is solved similar to the quadratic case, leading to:
 \label{eq:CubicHermite}
 \end{equation}
 
-\newpage
 \section{Average Curve Computation}\label{chapter:Tracing}
 
 \begin{figure*}
@@ -152,17 +151,29 @@ This equation is solved similar to the quadratic case, leading to:
 
 
 \subsection{Distance functions}
-TODO
-\blindtext
 
-\subsubsection{Newton-Raphson Method}
-TODO
-\blindtext
+To satisfy the distance constraints (1) and (2) in the objective function, we need to first 
+define the distance functions for a point and a curve. Note that since our curve representation
+is composed of multiple splines, we are actually interested in distance between a point
+and a hermite (quadratic or cubic). If $P(t)$ represents a point on the spline, parameterized
+with time $t$, we are interested in finding $t$ such that the tangent at that point $P^\prime(t)$ and
+the vector from that point to the input point $Q$ are perpendicular:
 
+\begin{equation}
+ P^\prime(t) \cdot (Q - P(t)) = 0
+\end{equation}
 
-\subsubsection{Laguerre's Method}
-TODO
-\blindtext
+If $P(t)$ is a quadratic polynomial in $t$, then the perpendicularity constraint is a cubic in $t$ and
+the points where the constraint are satisfied can be solved in closed form. Otherwise, if $P(t)$ is a 
+cubic polynomial in $t$, then the perpendicularity constraint is a quintic in $t$ and its roots
+need to determined with a local optimizer. 
+
+Once all the roots of the perpendicularity constraint is found, the ones with imaginary coefficients
+and the ones with real values that are out of the [0,1] bound need to be eliminated. Moreover, to
+choose the closest perpendicular point, an iterative comparison has to be executed as shown in 
+Algorithm 1 for a quintic function. Note that the coefficients for the polynomial are obtained
+through Matlab's symbolic toolbox. 
+
 \SetArgSty{textup}
 \begin{algorithm}[ht!]
   \SetCommentSty{emph}
@@ -183,9 +194,30 @@ TODO
   \caption{closestPointOnCubicHermite()}
 \end{algorithm}
 
+\subsection{Optimization methods}
+
+Here, we would like to make a brief mention of the Java Commons Math library which provides a 
+plethora of optimizer and share our experience for future users. 
+
+\subsubsection{Newton-Raphson Method}
+The Newton-Raphson method is one of the few methods that does not need an initial bracketing (limiting
+the solution space) and is also conceptually simple: just follow the derivative at the initial sample
+until it hits a zero-crossing and repeat until convergence. However, unfortunately, the library
+implementation does not always return the closest solution to the sample and thus, hard to use to 
+determine all the roots of the quintic function.
+
+\subsubsection{Laguerre's Method}
+The Laguerre's method is dependent on two initial bounds which have different signs when the 
+quintic is evaluated. The positive aspect of the implementation of the method is that it is guaranteed to find a solution
+if one exists within the bounds and if not, throw an exception. Thus, we discretize the
+time domain and search for the roots systematically. 
+
 \subsection{Curve tracing}
-TODO
-\blindtext
+
+The block diagram that outlines the main functions in our curve tracing algorithm is presented in Figure 1.
+The main idea is to start with the intersection of the two curves as the first sample and continuously project
+out in the ``medial-line'' of the projected points' tangents iteratively. The traceCurve function in Algorithm 2
+demonstrates the steps involved. 
 
 \begin{algorithm}[ht!]
   \SetCommentSty{emph}
@@ -199,15 +231,22 @@ TODO
   $current \stackrel{+}\leftarrow \text{STEP\_SIZE} \;\vec{n}(\vec{T}_A + \vec{T}_B)$; \\
   $\{t_a^\prime, t_b^\prime, r, P_c\} \leftarrow \text{snap}(\mathbf{A},\mathbf{B},current)$; \\
   \lIf{$max(t_a,t_b) < 1$ \textbf{or} $t_a^\prime < t_a$ \textbf{or} $t_b^\prime < t_b$} \textbf{break}; \\
+  $\{t_a, t_b\} \leftarrow \{t_a^\prime, t_b^\prime\};$ \\
   $\mathbf{C}.$add($P_c$); \\
   }
   \Return{$\mathbf{C}$};
   \caption{traceCurve()}
 \end{algorithm}
 
-TODO
-\blindtext
+For a sample \textit{current}, the algorithm first finds the tangents
+at the projected point $\vec{T}_A$ and $\vec{T}_B$, and \textit{projects out} the current sample by their median.
+However, since this point is not guaranteed to represent the distance constraints (1) and (2), nor since that
+sphere would be minimal, we need to incrementally move it with the \textit{snap} function. 
 
+The pseudo-code for the \textit{snap} function is presented in Algorithm 3. At each iteration,
+two main changes are made on the initial sample. First, the point is moved towards its closest projections
+as shown in the lines 3-7. Then, the point is moved towards the planes defined by the projections 
+and the sphere center to minimize the radius of the sphere (in lines 8-10).
 
 \begin{algorithm}[ht!]
   \SetCommentSty{emph}
@@ -230,10 +269,68 @@ TODO
 
 
 \subsection{Average Distance (geodesic) Sampling}
-TODO
 
-\subsection{Detect non-compatible control curves}
-TODO
+One challenge with the output of the naive tracing algorithm is that the samples on the curve $C$
+can have arbitrary relative distances. This can be an issue when additional visualization tools
+are built upon this curve such as tubes and boardwalk patterns. One approach is to predefine
+the number of points desired and sample the curve $C$ based on the total arc length and the 
+chosen resolution. 
+
+Algorithm 4 outlines this approach where the relevant $C$ samples for the new sample are
+determined with a preliminary search (lines 6-12) and then, an intermediary point is computed
+with linear interpolation. Next, the interpolated point is pushed back on to the curve $C$
+to satisfy the object constraints 1-3 using the snap function in lines 14-15.
+
+The effect of the average distance sampling in comparison to the original average curve
+$C$ can be observed in Figure 3 between items (a) and (b). As expected, the samples
+along the geodesic curve is much more refined and can sample more thoroughly the ``incompatible''
+regions.
+
+\begin{algorithm}[ht!]
+  \SetCommentSty{emph}
+  \KwIn{$\{\mathbf{A},\mathbf{B}\}$: curves, $N:$ number of points}
+  \KwResult{$\mathbf{G}$: geodesic average curve}
+  $\mathbf{C} \leftarrow$ trace($\mathbf{A}, \mathbf{B}$); \\
+  $length \leftarrow \mathbf{A}.$arcLength()$ + \mathbf{B}.$arcLength(); \\
+  $\{\delta l, i, \mathbf{G}\} \leftarrow \{length / N, 0, \{\mathbf{C}[0]\}\}$;\\
+  \While{true} {
+    $\{g, \underline{i}, \underline{d}, \overline{i}, \overline{d}\} \leftarrow \{\mathbf{G}$.last, $i,0,-1,0\};$ \\
+    \While{$i < \mathbf{C}.$length} {
+      $d_A \leftarrow \mathbf{A}.$arcLength($proj(g,\mathbf{A}$), $proj(C[i], \mathbf{A}$)); \\
+      $d_B \leftarrow \mathbf{B}.$arcLength($proj(g,\mathbf{B}$), $proj(C[i], \mathbf{B}$)); \\
+      \lIf{$d_A + d_B < \delta l$} $\{\underline{i}, \underline{d}\} \leftarrow \{i, d_A + d_B\}$; \\
+      \Else {
+	$\{\underline{i}, \underline{d}\} \leftarrow \{i, d_A + d_B\};$ \\
+	\textbf{break};
+      }
+    }
+    \lIf{$i \geq \mathbf{C}.$length} break; \\
+    $P_c \leftarrow $LERP$(\mathbf{C}[\underline{i}], \mathbf{C}[\overline{i}], (\delta l - \underline{d}) / (\overline{d} - \underline{d}))$;\\
+    $\mathbf{G}$.add(snap($\mathbf{A}, \mathbf{B}, P_c$)); \\
+  }
+  \Return{$\mathbf{G}$};
+  \caption{geodesicTrace()}
+\end{algorithm}
+
+\newpage
+\subsection{Detect incompatible control curves}
+
+An important aspect of the average curve formulations provided in the first section is that the 
+there may not always be a solution to the three fundamental constraints of the average curve.
+In such cases, the average curve may not (1) exist, (2) be smooth, or (3) be close to the medial axis,
+and thus, it is important to inform the user when such cases may arrive as they manipulate the control points.
+
+One method of doing so is to monitor the arclength between the consecutive points in the average curve (geodesic)
+trace. If the arclength is significantly larger than the expected step size (1.5 times more in our implementation), 
+then a warning can be given by tracing the corresponding curve sections in red. Figure 2 below demonstrates
+examples of such extreme cases and the incompatible sections of the input control curves that would lead to a branching
+in the medial axis. 
+
+\begin{figure}[ht!]
+  \includegraphics[width=1.0\linewidth]{images/Result45.png}
+	\caption{Extreme cases and non-compatibility detection}
+	\label{fig:Result4}
+\end{figure}
 
 \newpage
 \section{Visualization and Editing}\label{chapter:Visual}
@@ -451,12 +548,6 @@ Also more freedom for the user to specify the input curve, like editing the velo
 	\caption{Example 2: a waterslide}
 	\label{fig:Result3}
 \end{figure*}
-\begin{figure*}
-	\centering
-		\includegraphics[scale=0.5]{images/Result4.png}
-		\includegraphics[scale=0.5]{images/Result5.png}
-	\caption{Example 3: extreme cases and non-compatibility detection}
-	\label{fig:Result4}
-\end{figure*}
+
 
 \end{document}

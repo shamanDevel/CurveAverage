@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2014.2.27)  1 NOV 2015 19:20
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2015.5.15)  2 NOV 2015 01:37
 entering extended mode
  %&-line parsing enabled.
 **paper.tex
@@ -1035,7 +1035,7 @@ LaTeX Info: Redefining \pageref on input line 38.
 \openout4 = `paper.out'.
 
 \AtBeginShipoutBox=\box64
- <pic.jpg, id=102, 99.572pt x 79.8985pt>
+ <pic.jpg, id=106, 99.572pt x 79.8985pt>
 File: pic.jpg Graphic file (type jpg)
  <use pic.jpg>
 LaTeX Font Info:    Try loading font information for U+msa on input line 56.
@@ -1092,108 +1092,113 @@ LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <0.5> not available
 
 
  <./pic.jpg>]
-Overfull \hbox (6.22592pt too wide) in paragraph at lines 171--171
+Overfull \hbox (6.22592pt too wide) in paragraph at lines 182--182
 [][]|$\OT1/cmr/m/n/10 [\OML/cmm/m/it/10 a; b; c; d; e; f\OT1/cmr/m/n/10 ] \OMS/
 cmsy/m/n/10  $\T1/ptm/m/n/10 generateDistanceCoeffs$\OT1/cmr/m/n/10 (\OML/cmm/m
 /it/10 P[]; T[]; P[]; T[]; Q\OT1/cmr/m/n/10 )$\T1/ptm/m/n/10 ;  
  []
 
 Package hyperref Info: bookmark level for unknown algocf defaults to 0 on input
- line 183.
+ line 194.
 
-Underfull \hbox (badness 10000) detected at line 184
+Underfull \hbox (badness 10000) detected at line 195
 [][]
  []
 
 
-Underfull \hbox (badness 10000) detected at line 206
+Underfull \hbox (badness 10000) detected at line 239
 [][]
  []
 
-LaTeX Font Info:    Try loading font information for T1+pcr on input line 226.
-(/usr/share/texmf-texlive/tex/latex/psnfss/t1pcr.fd
+[2]
+LaTeX Font Info:    Try loading font information for T1+pcr on input line 265.
+ (/usr/share/texmf-texlive/tex/latex/psnfss/t1pcr.fd
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 )
-Underfull \hbox (badness 10000) detected at line 229
+Underfull \hbox (badness 10000) detected at line 268
 [][]
  []
 
-[2] <images/NoGeodesicSampling.png, id=161, 287.8755pt x 299.31825pt>
+
+Underfull \hbox (badness 10000) detected at line 313
+[][]
+ []
+
+<images/Result45.png, id=167, 532.389pt x 290.2845pt>
+File: images/Result45.png Graphic file (type png)
+
+<use images/Result45.png> [3 <./images/Result45.png>]
+<images/NoGeodesicSampling.png, id=205, 287.8755pt x 299.31825pt>
 File: images/NoGeodesicSampling.png Graphic file (type png)
 
 <use images/NoGeodesicSampling.png>
-<images/GeodesicSampling.png, id=163, 260.77425pt x 299.31825pt>
+<images/GeodesicSampling.png, id=206, 260.77425pt x 299.31825pt>
 File: images/GeodesicSampling.png Graphic file (type png)
 
 <use images/GeodesicSampling.png>
-<images/ClosestProjections.png, id=164, 254.75175pt x 285.4665pt>
+<images/ClosestProjections.png, id=207, 254.75175pt x 285.4665pt>
 File: images/ClosestProjections.png Graphic file (type png)
 
 <use images/ClosestProjections.png>
-<images/CircularArcNet.png, id=165, 251.13824pt x 286.06876pt>
+<images/CircularArcNet.png, id=208, 251.13824pt x 286.06876pt>
 File: images/CircularArcNet.png Graphic file (type png)
 
-<use images/CircularArcNet.png> [3]
-Underfull \vbox (badness 10000) has occurred while \output is active []
+<use images/CircularArcNet.png>
+Underfull \vbox (badness 1735) has occurred while \output is active []
 
-
-<images/InflationNoParallelTransport.png, id=190, 125.87025pt x 413.74574pt>
+ [4]
+<images/InflationNoParallelTransport.png, id=220, 125.87025pt x 413.74574pt>
 File: images/InflationNoParallelTransport.png Graphic file (type png)
 
 <use images/InflationNoParallelTransport.png>
-<images/InflationParallelTransport.png, id=191, 111.41624pt x 436.63126pt>
+<images/InflationParallelTransport.png, id=221, 111.41624pt x 436.63126pt>
 File: images/InflationParallelTransport.png Graphic file (type png)
 
 <use images/InflationParallelTransport.png>
-<images/InflationHalf.png, id=192, 94.55325pt x 417.35925pt>
+<images/InflationHalf.png, id=222, 94.55325pt x 417.35925pt>
 File: images/InflationHalf.png Graphic file (type png)
 
 <use images/InflationHalf.png>
-Overfull \hbox (15.23634pt too wide) in paragraph at lines 351--357
+Overfull \hbox (15.23634pt too wide) in paragraph at lines 448--454
  [][] 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 367--368
+Underfull \hbox (badness 10000) in paragraph at lines 464--465
 
  []
 
-[4 <./images/NoGeodesicSampling.png> <./images/GeodesicSampling.png> <./images/
-ClosestProjections.png> <./images/CircularArcNet.png>]
-<images/Result1.png, id=210, 472.76625pt x 303.534pt>
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [5 <./images/NoGeodesicSampling.png> <./images/GeodesicSampling.png> <./images
+/ClosestProjections.png> <./images/CircularArcNet.png> <./images/InflationNoPar
+allelTransport.png> <./images/InflationParallelTransport.png> <./images/Inflati
+onHalf.png>] <images/Result1.png, id=244, 472.76625pt x 303.534pt>
 File: images/Result1.png Graphic file (type png)
- <use images/Result1.png>
-<images/Result2.png, id=211, 342.078pt x 322.20375pt>
+
+<use images/Result1.png> <images/Result2.png, id=245, 342.078pt x 322.20375pt>
 File: images/Result2.png Graphic file (type png)
- <use images/Result2.png>
-<images/Result3.png, id=212, 425.79076pt x 436.63126pt>
+
+<use images/Result2.png>
+<images/Result3.png, id=246, 425.79076pt x 436.63126pt>
 File: images/Result3.png Graphic file (type png)
 
-<use images/Result3.png>
-<images/Result4.png, id=213, 255.95625pt x 290.2845pt>
-File: images/Result4.png Graphic file (type png)
-
-<use images/Result4.png>
-<images/Result5.png, id=214, 299.31825pt x 290.2845pt>
-File: images/Result5.png Graphic file (type png)
-
-<use images/Result5.png> [5 <./images/InflationNoParallelTransport.png> <./imag
-es/InflationParallelTransport.png> <./images/InflationHalf.png>] [6 <./images/R
-esult1.png> <./images/Result2.png> <./images/Result3.png> <./images/Result4.png
-> <./images/Result5.png>] (./paper.aux)
+<use images/Result3.png> [6] [7 <./images/Result1.png> <./images/Result2.png> <
+./images/Result3.png>] (./paper.aux)
 
 LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 4.5pt have occurred.
 
  ) 
 Here is how much of TeX's memory you used:
- 18246 strings out of 495061
- 335976 string characters out of 1182621
- 465504 words of memory out of 3000000
- 20941 multiletter control sequences out of 15000+50000
+ 18263 strings out of 495061
+ 336135 string characters out of 1182621
+ 461494 words of memory out of 3000000
+ 20938 multiletter control sequences out of 15000+50000
  115912 words of font info for 141 fonts, out of 3000000 for 9000
  29 hyphenation exceptions out of 8191
- 56i,17n,56p,532b,671s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 56i,19n,56p,532b,671s stack positions out of 5000i,500n,10000p,200000b,50000s
 {/usr/share/texmf-texlive/fonts/enc/dvips/base/8r.enc}</usr/share/texmf-texli
 ve/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texmf-texlive/fonts/ty
 pe1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-texlive/fonts/type1/public/
@@ -1209,9 +1214,9 @@ usr/share/texmf-texlive/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/sh
 are/texmf-texlive/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texmf-texlive/
 fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/time
 s/utmr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmri8a.pfb>
-Output written on paper.pdf (6 pages, 620492 bytes).
+Output written on paper.pdf (7 pages, 629013 bytes).
 PDF statistics:
- 309 PDF objects out of 1000 (max. 8388607)
- 84 named destinations out of 1000 (max. 500000)
- 270 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 340 PDF objects out of 1000 (max. 8388607)
+ 105 named destinations out of 1000 (max. 500000)
+ 273 words of extra memory for PDF output out of 10000 (max. 10000000)
 
