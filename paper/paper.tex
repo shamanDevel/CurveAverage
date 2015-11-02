@@ -1,6 +1,7 @@
 \documentclass[journal, letterpaper]{IEEEtran}
 %\documentclass{scrartcl}
 
+\usepackage{blindtext}
 \usepackage[english]{babel}
 %\usepackage[latin1]{inputenc}
 \usepackage[utf8]{inputenc}
@@ -11,12 +12,21 @@
 \usepackage{tikz}
 \usepackage{verbatim}
 \usepackage{subcaption}
-\usepackage{algorithm}
-\usepackage{algorithmic}
+% \usepackage{algorithm}
+% \usepackage{algorithmic}
 \usepackage[pdftex]{hyperref}
+\usepackage[algoruled, vlined,linesnumbered]{algorithm2e}
 
-\renewcommand{\algorithmicrequire}{\textbf{Input:}}
-\renewcommand{\algorithmiccomment}[1]{\ \ // #1} % C-like // Comments
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows}
+\tikzstyle{block} = [draw, fill=blue!20, rectangle, 
+    minimum height=3em, minimum width=6em]
+\tikzstyle{sum} = [draw, fill=blue!20, circle, node distance=1cm]
+\tikzstyle{input} = [coordinate]
+\tikzstyle{output} = [coordinate]
+\tikzstyle{pinstyle} = [pin edge={to-,thin,black}]
+% \renewcommand{\algorithmicrequire}{\textbf{Input:}}
+% \renewcommand{\algorithmiccomment}[1]{\ \ // #1} % C-like // Comments
 
 \hyphenation{render}
 
@@ -113,13 +123,111 @@ This equation is solved similar to the quadratic case, leading to:
 \label{eq:CubicHermite}
 \end{equation}
 
+\newpage
 \section{Average Curve Computation}\label{chapter:Tracing}
+
+\begin{figure*}
+ \centering
+% The block diagram code is probably more verbose than necessary
+\begin{tikzpicture}[auto, node distance=2cm,>=latex']
+    \node [block, align=center] (traceCurve) {traceCurve\\\scriptsize Algorithm 2};
+    \node [block, right of=traceCurve, align=center, node distance=3cm] (snap) {snap\\\scriptsize Algorithm 3};
+    \draw [draw,->] (traceCurve) -- (snap);
+    \node [block, right of=snap, align=center, node distance=3cm] (findClosest) {findClosest};
+    \draw [->] (snap) -- (findClosest);
+    \node [block, right of=findClosest, align=center, node distance=3cm] (closestOnCubicHermite) {cubicHermite\\ \scriptsize Algorithm 1};
+    \draw [->] (findClosest) -- (closestOnCubicHermite);
+    \node [block, right of=closestOnCubicHermite, node distance=3cm] (solveQuintic) {solveQuintic};
+    \draw [->] (closestOnCubicHermite) -- (solveQuintic);
+    \node [block, right of=solveQuintic, node distance=3cm] (Laguerre) {Laguerre};
+    \draw [->] (solveQuintic) -- (Laguerre);
+    \node [block, below of=closestOnCubicHermite, align=center] (quadraticHermite) {quadraticHermite};
+    \draw [->] (findClosest) |- (quadraticHermite);
+    \node [block, right of=quadraticHermite, node distance=3cm] (solveCubic) {solveCubic};
+    \draw [->] (quadraticHermite) -- (solveCubic);
+\end{tikzpicture}
+\normalsize 
+\caption{\normalsize Block diagram for the major functions involved in tracing the average curve}
+\end{figure*}
+
 
 \subsection{Distance functions}
 TODO
+\blindtext
+
+\subsubsection{Newton-Raphson Method}
+TODO
+\blindtext
+
+
+\subsubsection{Laguerre's Method}
+TODO
+\blindtext
+\SetArgSty{textup}
+\begin{algorithm}[ht!]
+  \SetCommentSty{emph}
+  \KwIn{$\{P_0, T_0, P_1, T_1\}$: control points, $Q$: input point}
+  \KwResult{$t$: time in $[0,1]$ for the closest point}
+  $[a,b,c,d,e,f] \leftarrow $generateDistanceCoeffs$(P_0,T_0,P_1,T_1,Q)$; \\
+  $res \leftarrow $solveQuintic($a,b,c,d,e,f$); \\
+  $\{minDist, t^*\} \leftarrow \{\infty,-1\}$;\\
+  \ForEach{$r \in res$} {
+    \lIf{$|r.im| > 0$} \textbf{continue}; \\
+    \lIf{$r.re < 0\;$ \textbf{or} $\;r.re > 1$} \textbf{continue}; \\
+    $P_t \leftarrow \tau(P_0,T_0,P_1,T_1,r.re)$; \\
+    \If{$|P_t - Q| < minDist$} {
+      $\{minDist, t^*\} \leftarrow \{|P_t - Q|, r.re\}$;\\
+    }
+  }
+  \Return{$t^*$};
+  \caption{closestPointOnCubicHermite()}
+\end{algorithm}
 
 \subsection{Curve tracing}
 TODO
+\blindtext
+
+\begin{algorithm}[ht!]
+  \SetCommentSty{emph}
+  \KwIn{$\{\mathbf{A},\mathbf{B}\}$: curves}
+  \KwResult{$\mathbf{C}$: average curve}
+  $\mathbf{C}.$add($\mathbf{A}[0], 0$); \\
+  $\{current, t_a, t_b, t_a^\prime, t_b^\prime\} \leftarrow \{\mathbf{C}[0],0,0,0,0\}$; \\
+  \While{true} {
+  $\vec{T}_A \leftarrow \vec{n}$($\mathbf{A}.\tau$($min(1,t_a+\epsilon)$) - $\mathbf{A}.\tau$($min(1,t_a)$)); \\
+  $\vec{T}_B \leftarrow \vec{n}$($\mathbf{B}.\tau$($min(1,t_b+\epsilon)$) - $\mathbf{B}.\tau$($min(1,t_b)$)); \\
+  $current \stackrel{+}\leftarrow \text{STEP\_SIZE} \;\vec{n}(\vec{T}_A + \vec{T}_B)$; \\
+  $\{t_a^\prime, t_b^\prime, r, P_c\} \leftarrow \text{snap}(\mathbf{A},\mathbf{B},current)$; \\
+  \lIf{$max(t_a,t_b) < 1$ \textbf{or} $t_a^\prime < t_a$ \textbf{or} $t_b^\prime < t_b$} \textbf{break}; \\
+  $\mathbf{C}.$add($P_c$); \\
+  }
+  \Return{$\mathbf{C}$};
+  \caption{traceCurve()}
+\end{algorithm}
+
+TODO
+\blindtext
+
+
+\begin{algorithm}[ht!]
+  \SetCommentSty{emph}
+  \KwIn{$\{\mathbf{A},\mathbf{B}\}$: curves, $Q:$ input point}
+  \KwResult{$\{t_a,t_b\}$: projections, $\{P_c, r\}$: sphere center/radius}
+  $P_c \leftarrow Q$; \\
+  \While{$i\texttt{++} < \;$MAX\_ITERS } {
+    $\{P_A, \vec{T}_A, r_A, t_A\} \leftarrow $closestPoint$(\mathbf{A}, P_c)$;  \\
+    $\{P_B, \vec{T}_B, r_B, t_B\} \leftarrow $closestPoint$(\mathbf{B}, P_c)$;  \\
+    $error \leftarrow |P_A - P_c| - |P_B - P_c|;$\\ 
+    \lIf{$error < \epsilon$} \textbf{break;} \\
+    $P_c \leftarrow P_c - error \;\vec{n}(\vec{T}_A - \vec{T}_B);$ \\
+    $\{d_A, \vec{V}_A\} \leftarrow $planeDist($P_c, P_A, P_B, \mathbf{A}.\tau(t_A + \epsilon))$;\\
+    $\{d_B, \vec{V}_B\} \leftarrow $planeDist($P_c, P_B, P_A, \mathbf{B}.\tau(t_B + \epsilon))$;\\
+    $P_c \leftarrow P_c - \text{PLANE\_PROJ\_COEFF} \;(d_A \vec{V}_A + d_B \vec{V}_B); $\\
+  }
+  \Return{$\{c_A.t, c_B.t, P_c, c_A.r\}$};
+  \caption{snap()}
+\end{algorithm}
+
 
 \subsection{Average Distance (geodesic) Sampling}
 TODO
@@ -127,6 +235,7 @@ TODO
 \subsection{Detect non-compatible control curves}
 TODO
 
+\newpage
 \section{Visualization and Editing}\label{chapter:Visual}
 
 \begin{figure*} %This just must appear at the page before the chapter "Displaying the average curve"
