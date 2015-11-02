@@ -1,25 +1,25 @@
-\BOOKMARK [1][-]{section.1}{Objective}{}
-\BOOKMARK [1][-]{section.2}{Input}{}
-\BOOKMARK [1][-]{section.3}{Overview}{}
-\BOOKMARK [1][-]{section.4}{Curve Representation}{}
-\BOOKMARK [2][-]{subsection.4.1}{Quadratic Hermite Spline}{section.4}
-\BOOKMARK [2][-]{subsection.4.2}{Cubic Hermite Spline}{section.4}
-\BOOKMARK [1][-]{section.5}{Average Curve Computation}{}
-\BOOKMARK [2][-]{subsection.5.1}{Distance functions}{section.5}
-\BOOKMARK [2][-]{subsection.5.2}{Optimization methods}{section.5}
-\BOOKMARK [3][-]{subsubsection.5.2.1}{Newton-Raphson Method}{subsection.5.2}
-\BOOKMARK [3][-]{subsubsection.5.2.2}{Laguerre's Method}{subsection.5.2}
-\BOOKMARK [2][-]{subsection.5.3}{Curve tracing}{section.5}
-\BOOKMARK [2][-]{subsection.5.4}{Average Distance \(geodesic\) Sampling}{section.5}
-\BOOKMARK [2][-]{subsection.5.5}{Detect incompatible control curves}{section.5}
-\BOOKMARK [1][-]{section.6}{Visualization and Editing}{}
-\BOOKMARK [2][-]{subsection.6.1}{Editing and displaying the control curve}{section.6}
-\BOOKMARK [2][-]{subsection.6.2}{Displaying the average curve}{section.6}
-\BOOKMARK [2][-]{subsection.6.3}{Closest projections}{section.6}
-\BOOKMARK [2][-]{subsection.6.4}{Circular arc}{section.6}
-\BOOKMARK [2][-]{subsection.6.5}{Inflation tube}{section.6}
-\BOOKMARK [3][-]{subsubsection.6.5.1}{Drawing the inflation tube}{subsection.6.5}
-\BOOKMARK [3][-]{subsubsection.6.5.2}{Parallel transport}{subsection.6.5}
-\BOOKMARK [3][-]{subsubsection.6.5.3}{half tube}{subsection.6.5}
-\BOOKMARK [1][-]{section.7}{Results}{}
-\BOOKMARK [1][-]{section.8}{Future work}{}
+\BOOKMARK [1][-]{section.1}{Objective}{}% 1
+\BOOKMARK [1][-]{section.2}{Input}{}% 2
+\BOOKMARK [1][-]{section.3}{Overview}{}% 3
+\BOOKMARK [1][-]{section.4}{Curve Representation}{}% 4
+\BOOKMARK [2][-]{subsection.4.1}{Quadratic Hermite Spline}{section.4}% 5
+\BOOKMARK [2][-]{subsection.4.2}{Cubic Hermite Spline}{section.4}% 6
+\BOOKMARK [1][-]{section.5}{Average Curve Computation}{}% 7
+\BOOKMARK [2][-]{subsection.5.1}{Distance functions}{section.5}% 8
+\BOOKMARK [2][-]{subsection.5.2}{Optimization methods}{section.5}% 9
+\BOOKMARK [3][-]{subsubsection.5.2.1}{Newton-Raphson Method}{subsection.5.2}% 10
+\BOOKMARK [3][-]{subsubsection.5.2.2}{Laguerre's Method}{subsection.5.2}% 11
+\BOOKMARK [2][-]{subsection.5.3}{Curve tracing}{section.5}% 12
+\BOOKMARK [2][-]{subsection.5.4}{Average Distance \(geodesic\) Sampling}{section.5}% 13
+\BOOKMARK [2][-]{subsection.5.5}{Detect incompatible control curves}{section.5}% 14
+\BOOKMARK [1][-]{section.6}{Visualization and Editing}{}% 15
+\BOOKMARK [2][-]{subsection.6.1}{Editing and displaying the control curve}{section.6}% 16
+\BOOKMARK [2][-]{subsection.6.2}{Displaying the average curve}{section.6}% 17
+\BOOKMARK [2][-]{subsection.6.3}{Closest projections}{section.6}% 18
+\BOOKMARK [2][-]{subsection.6.4}{Circular arc}{section.6}% 19
+\BOOKMARK [2][-]{subsection.6.5}{Inflation tube}{section.6}% 20
+\BOOKMARK [3][-]{subsubsection.6.5.1}{Drawing the inflation tube}{subsection.6.5}% 21
+\BOOKMARK [3][-]{subsubsection.6.5.2}{Parallel transport}{subsection.6.5}% 22
+\BOOKMARK [3][-]{subsubsection.6.5.3}{half tube}{subsection.6.5}% 23
+\BOOKMARK [1][-]{section.7}{Results}{}% 24
+\BOOKMARK [1][-]{section.8}{Future work}{}% 25
