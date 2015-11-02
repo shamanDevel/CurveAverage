@@ -27,6 +27,10 @@
 \tikzstyle{pinstyle} = [pin edge={to-,thin,black}]
 % \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 % \renewcommand{\algorithmiccomment}[1]{\ \ // #1} % C-like // Comments
+\usepackage{color}
+%\newcommand{}{\color{blue}}
+\newcommand{\cre}{\color{red}}
+\newcommand{\cbl}{\color{black}}
 
 \hyphenation{render}
 
@@ -40,7 +44,7 @@
 %\title{Simulating elastic spheres without external forces}
 %\subtitle{Project 1 for class CS6491 Computer Graphics}
 \title{Curve Average \\
-	{\large Project 3 for class CS6491 Computer Graphics}}
+	{\large Project 3 for CS 6491: Computer Graphics}}
 %\author{Sebastian Weiss}
 \author{Sebastian Weiss, Can Erdogan \\ \today}
 %\date{\today}
@@ -356,7 +360,7 @@ More specific, we support the following features:
 	\item Displaying the circular arc and animating the curve average along it
 	\item Showing the inflation tube, the envelope of the smallest spheres
 \end{itemize}
-We now describe the single features in more detail
+We now describe the \cre single \cbl features in more detail.
 
 \subsection{Editing and displaying the control curve}
 We display the control points as gray spheres and the two control curves in green and blue.
@@ -366,7 +370,7 @@ The user can click the control points and change their positions by dragging the
 The curve average is displayed by connecting the sample points using piecewise straight tubes. The faces of the tubes are rendered in alternating black and gray so you can see where the trace points are.
 The user has now the option to toggle geodesic sampling on or off. The effects are shown in Fig.\ref{fig:GeodesicSampling}ab. 
 
-As you can see, without geodesic sampling, the distances between the samples of the curve average are almost equispaced, but the closest projections on the control curve, indicated by the circular arcs, vary greatly in the distances. With geodesic sampling turned on, the curve average is sampled in that way that the sum of the distances between two consecutive closest projects on the control curves is constant. However, this leads to large variation of the distances of the curve average samples.
+\cre As you can see, \cbl without geodesic sampling, the distances between the samples of the curve average are almost equispaced, but the closest projections on the control curve, indicated by the circular arcs, vary greatly in the distances. With geodesic sampling turned on, the curve average is sampled in that way that the sum of the distances between two consecutive closest projects on the control curves is constant. However, this leads to large variation of the distances of the curve average samples.
 
 \subsection{Closest projections}
 To visualize the closest projections, i.e. the points on the control curve that are closest to the average curve at this point, we draw straight lines between the sample of the curve average and its closest projections. These can be seen in Fig.\ref{fig:GeodesicSampling}c. Note that the lines to both control curves are of the same length and that they stand orthogonal to the control curve at the intersections. These are the properties that define the closest projections and the curve average.
@@ -406,7 +410,7 @@ Instead of displaying the closest projections as straight lines, we could also d
 	\label{fig:CircularArc}
 \end{figure}
 In Fig.\ref{fig:CircularArc}, you can see parts of the two input curves in green and blue and the curve average in black in the middle. The current trace point is $P$ and the closest projections of $P$ on the control points are $A$ and $B$. \\
-We can now construct a unique circle in 3d with center $C$ and radius $r$ that goes through $A$ and $B$, the tangents at these points are $AP$ and $BP$ and lies in the convex hull of $A$,$B$ and $P$.
+We can now construct a unique \cre circle \cbl in $\mathbf{R}^3$ with center $C$ and radius $r$ that goes through $A$ and $B$, the tangents at these points are $AP$ and $BP$ and lies in the convex hull of $A$,$B$ and $P$.
 
 First, assume $A$,$B$,$P$ are not collinear. Then $ABP$ defines a plane with the normal vector $N=\underline{PA} \times \underline{PB}$. The circular arc lies in that plane. The vectors $U=N \times \underline{PA}$ and $V=N \times \underline{PB}$ are normals of the circle at these points.
 Therefore, the rays $A+\alpha U$ and $B+\beta V$ intersect exactly at the circle center $C$.
@@ -463,7 +467,7 @@ To draw the inflation tube, we get the following input from the tracing algorith
 
 The first way one might think of drawing it, is to circles around the average curve samples $P_i$ in the plane orthogonal to the tangents $T_i$ with radii $r_i$ and connect them to tubes. However, this approach will lead to wrong results since the closest projections to the control curves are not orthogonal to the average curve tangent. Therefore, the distance from the closest projections to the average curve is not equal to the radius of the circle when it should touch the control curves.\\
 
-We present a different approach now. Instead of drawing circles orthogonal to the tangents, we directly take the vectors $P_i A_i$ and rotate them around $T_i$. This technique is visualized in Fig.\ref{fig:InflationDrawing}. We rotate $P_i A_i$ as described in Eq.\ref{eq:Rot} the whole $360^{\circ}$. At $180^{\circ}$, the vector becomes $P_i B_i$. We then sample the circles at constant angles and connect samples with the same angle, leading to the tube as shown in Fig.\ref{fig:Inflation}a.
+\cre Create a new section? \cbl We present a different approach now. Instead of drawing circles orthogonal to the tangents, we directly take the vectors $P_i A_i$ and rotate them around $T_i$. This technique is visualized in Fig.\ref{fig:InflationDrawing}. We rotate $P_i A_i$ as described in Eq.\ref{eq:Rot} the whole $360^{\circ}$. At $180^{\circ}$, the vector becomes $P_i B_i$. We then sample the circles at constant angles and connect samples with the same angle, leading to the tube as shown in Fig.\ref{fig:Inflation}a.
 
 \begin{figure}[ht!] 
   \centering
